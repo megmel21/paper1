@@ -1,0 +1,916 @@
+---
+title: "considering policies"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(DAAG)
+library(sjPlot)
+```
+#検診実施状況について----
+
+ついでに入れてみるか。
+
+
+```{r}
+sc_situation2 <- read_csv("C:/Users/megme/Documents/cleaning variables/sc_situation2.csv", locale = locale(encoding = "SHIFT-JIS"))
+
+names(sc_situation2) %>% 
+  str_remove_all(., pattern = "\\(|\\)|/|、|※|～") %>% 
+  str_replace_all(pattern = "%", replacement = "per")->names(sc_situation2)
+
+names(sc_situation2)[1]<-"year"
+names(sc_situation2)[3]<-"pref"
+names(sc_situation2)[7]<-"cancertype"
+
+sc_situation2$pref %>% 
+  str_remove_all(pattern = "県|府") %>% 
+  str_replace_all(pattern = "東京都" , replacement = "東京")->sc_situation2$pref 
+
+sc_situation2$pref <- factor(sc_situation2$pref, levels = prefsort)
+
+sc_situation2$pref %>% is.na() %>% sum()
+
+
+# [27] "定員.定員を設けている先着順あるいは抽選%" 
+# [30] "検診項目一部あるいは全員に実施した内容.回答あり.指針に基づく検診項目以外を実施した%"
+# [32] "費用の自己負担.対象者全員が自己負担なし%"        
+# [35] "受診会場.市内の会場のみで受診可能%"                                                   
+# [36] "受診会場.近隣市～県内の会場で受診可能%"             
+# [38] "休日早朝夜間の検診.実施した%"                                                     
+# [39] "休日早朝夜間の検診.実施していない%"      
+
+sc_situation2 %>% 
+  filter( 検診方式集団個別 == "集団") %>% 
+  select(year, pref,cancertype,27,30,32,36,38) %>% 
+  rename(haslimit = 定員.定員を設けている先着順あるいは抽選per,
+         originalmenu = 検診項目一部あるいは全員に実施した内容.回答あり.指針に基づく検診項目以外を実施したper, 
+         forfree = 費用の自己負担.対象者全員が自己負担なしper,
+         othercity = 受診会場.近隣市県内の会場で受診可能per,
+         offhours = 休日早朝夜間の検診.実施したper) -> sc_situation2_mod
+
+sc_situation2_mod[4:8] %>% 
+  lapply(., as.numeric) -> sc_situation2_mod[4:8]
+
+sc_situation2_mod$cancertype %>% as.factor() %>% levels()
+sc_situation2_mod$cancertype %>% 
+  str_replace_all(pattern = "胃がん", replacement = "gc") %>%
+  str_replace_all(pattern = "子宮頸がん", replacement = "cvc") %>% 
+  str_replace_all(pattern = "大腸がん", replacement = "crc") %>% 
+  str_replace_all(pattern = "乳がん", replacement = "bc") %>% 
+  str_replace_all(pattern = "肺がん", replacement = "lc") -> sc_situation2_mod$cancertype
+  
+
+sc_situation2_mod$cancertype <- factor(sc_situation2_mod$cancertype, levels = c("gc","lc","crc","bc","cvc"))
+
+sc_situation2_mod$haslimit %>% summary()
+sc_situation2_mod$originalmenu %>% summary()
+sc_situation2_mod$forfree %>% summary()
+sc_situation2_mod$othercity %>% summary()
+sc_situation2_mod$offhours %>% summary()
+
+haslimit <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(year), y = haslimit, fill = factor(year)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="haslimit.png", plot = haslimit, height = 10, width = 15)
+
+originalmenu <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(year), y = originalmenu, fill = factor(year)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="originalmenu.png", plot = originalmenu, height = 10, width = 15)
+
+forfree <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(year), y = forfree, fill = factor(year)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="forfree.png", plot = forfree, height = 10, width = 15)
+
+othercity <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(year), y = othercity, fill = factor(year)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="othercity.png", plot = othercity, height = 10, width = 15)
+
+offhours <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(year), y = offhours, fill = factor(year)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="offhours.png", plot = offhours, height = 10, width = 15)
+
+
+
+sc_situation2_mod %>% 
+  pivot_wider(., names_from = "cancertype", values_from = c("haslimit","originalmenu","forfree","othercity","offhours")   )-> sc_situation_wider
+
+sc_situation_wider %>% names()
+```
+これとマージしちゃえばいいわけだ。
+
+
+
+```{r}
+mergecscr_h28 <- read.csv("C:\\Users\\megme\\Dropbox\\厚労科研\\Koshi\\scrate and gender gap\\uncleaned datasets\\scrate\\H28.CSLC.workplace.csv", header = T , stringsAsFactors = F ,na = c("-","…"))
+
+```
+
+```{r}
+mergecscr.h28 <- mergecscr_h28
+
+mergecscr.h28 %>% names()
+names(mergecscr.h28)[1] <-"sex"
+names(mergecscr.h28)[2] <-"age"
+names(mergecscr.h28)[3] <-"pref"
+names(mergecscr.h28)[4] <-"totalpop_household"
+names(mergecscr.h28)[6] <-"gc.gov"
+names(mergecscr.h28)[7] <-"gc.work"
+names(mergecscr.h28)[8] <-"gc.other"
+names(mergecscr.h28)[13] <-"lc.gov"
+names(mergecscr.h28)[14] <-"lc.work"
+names(mergecscr.h28)[15] <-"lc.other"
+names(mergecscr.h28)[34] <-"crc.gov"
+names(mergecscr.h28)[35] <-"crc.work"
+names(mergecscr.h28)[36] <-"crc.other"
+names(mergecscr.h28)[48] <-"bc.gov"
+names(mergecscr.h28)[49] <-"bc.work"
+names(mergecscr.h28)[50] <-"bc.other"
+names(mergecscr.h28)[41] <-"cvc.gov"
+names(mergecscr.h28)[42] <-"cvc.work"
+names(mergecscr.h28)[43] <-"cvc.other"
+
+mergecscr.h28 %>% names()
+
+mergecscr.h28$sex %>% 
+    str_replace_all(pattern = "男女計", replacement = "both") %>% 
+  str_replace_all(pattern = "男", replacement = "male") %>% 
+  str_replace_all(pattern = "女", replacement = "female")  ->mergecscr.h28$sex
+  
+mergecscr.h28$pref %>% 
+  str_remove_all(pattern = " |　") %>% 
+  str_remove_all(pattern = "県") -> mergecscr.h28$pref 
+
+
+mergecscr.h28$age %>% 
+  str_remove_all(pattern = " |　") %>% 
+  str_remove_all(pattern = "歳") %>%
+  str_replace_all(pattern = "以上", replacement = "_") %>%
+  str_replace_all(pattern = "～", replacement = "_") %>% 
+  str_replace_all(pattern = "総数", replacement = "total")-> mergecscr.h28$age 
+
+str(mergecscr.h28)
+names(mergecscr.h28)
+
+mergecscr.h28[4:53] %>% 
+  lapply(., as.numeric) -> mergecscr.h28[4:53]
+
+
+prefsort <- c("北海道" , "青森" , "岩手" , "宮城" , "秋田" , "山形" , "福島" , "茨城" , "栃木" , "群馬" , "埼玉" , "千葉" , "東京" , "神奈川" , "新潟" , "富山" , "石川" , "福井" , "山梨" , "長野" , "岐阜" , "静岡" , "愛知" , "三重" , "滋賀" , "京都" , "大阪" , "兵庫" , "奈良" , "和歌山" , "鳥取" , "島根" , "岡山" , "広島" , "山口" , "徳島" , "香川" , "愛媛" , "高知" , "福岡" , "佐賀" , "長崎" , "熊本" , "大分" , "宮崎" , "鹿児島" , "沖縄" , "全国")
+
+mergecscr.h28$pref <- factor(mergecscr.h28$pref, levels = prefsort)
+
+```
+
+```{r}
+mergecscr.h28$pref %>% 
+  str_subset(pattern = "再掲", negate= T) %>% 
+  as.factor() %>% 
+  levels()  -> prefonly
+ 
+mergecscr.h28$age %>% 
+  str_subset(pattern = "再掲|total", negate= T) %>% 
+  as.factor() %>% 
+  levels()  -> ageup20
+
+mergecscr.h28$age %>% 
+  str_subset(pattern = "再掲|total|2|3", negate= T) %>% 
+  as.factor() %>% 
+  levels()  -> ageup40
+
+mergecscr.h28 %>% 
+  select(pref,age,sex,totalpop_household, contains("gc"),contains("lc"),contains("crc"),contains("bc"),contains("cvc")  ) %>% 
+  filter(pref %in% prefonly) %>% 
+  filter(age %in% ageup40) %>% 
+  group_by(pref,sex) %>% 
+  summarise(totalpop_household_sum = sum(totalpop_household, na.rm = T),
+            numerator_gcgov = sum( gc.gov, na.rm = T),
+            numerator_lcgov = sum( lc.gov, na.rm = T),
+            numerator_crcgov = sum( crc.gov, na.rm = T),
+            numerator_bcgov = sum( bc.gov, na.rm = T),
+            numerator_cvcgov = sum( cvc.gov, na.rm = T),
+            numerator_gcwork = sum( gc.work, na.rm = T),
+            numerator_lcwork = sum( lc.work, na.rm = T),
+            numerator_crcwork = sum( crc.work, na.rm = T),
+            numerator_bcwork = sum( bc.work, na.rm = T),
+            numerator_cvcwork = sum( cvc.work, na.rm = T),
+            numerator_gcother = sum( gc.other, na.rm = T),
+            numerator_lcother = sum( lc.other, na.rm = T),
+            numerator_crcother = sum( crc.other, na.rm = T),
+            numerator_bcother = sum( bc.other, na.rm = T),
+            numerator_cvcother = sum( cvc.other, na.rm = T)) %>% 
+              mutate(cscr_govgc = numerator_gcgov/totalpop_household_sum,
+                     cscr_govlc = numerator_lcgov/totalpop_household_sum,
+                     cscr_govcrc = numerator_crcgov/totalpop_household_sum,
+                     cscr_govbc = numerator_bcgov/totalpop_household_sum,
+                     cscr_govcvc = numerator_cvcgov/totalpop_household_sum,
+                     cscr_workgc = numerator_gcwork/totalpop_household_sum,
+                     cscr_worklc = numerator_lcwork/totalpop_household_sum,
+                     cscr_workcrc = numerator_crcwork/totalpop_household_sum,
+                     cscr_workbc = numerator_bcwork/totalpop_household_sum,
+                     cscr_workcvc = numerator_cvcwork/totalpop_household_sum,
+                     cscr_othergc = numerator_gcother/totalpop_household_sum,
+                     cscr_otherlc = numerator_lcother/totalpop_household_sum,
+                     cscr_othercrc = numerator_crcother/totalpop_household_sum,
+                     cscr_otherbc = numerator_bcother/totalpop_household_sum,
+                     cscr_othercvc = numerator_cvcother/totalpop_household_sum,
+                     cscr_totalgc = cscr_govgc+cscr_workgc+cscr_othergc,
+                     cscr_totallc = cscr_govlc+cscr_worklc+cscr_otherlc,
+                    cscr_totalcrc = cscr_govcrc+cscr_workcrc+cscr_othercrc,
+                    cscr_totalbc = cscr_govbc+cscr_workbc+cscr_otherbc,
+                    cscr_totalcvc = cscr_govcvc+cscr_workcvc+cscr_othercvc) %>% 
+  select(pref,sex,totalpop_household_sum, 
+         contains("cscr_total"),
+         contains("cscr_gov"),
+         contains("cscr_work"),
+         contains("cscr_other"), everything()) -> mergecscr_h28_up40
+
+mergecscr.h28 %>% 
+  select(pref,age,sex,totalpop_household, contains("gc"),contains("lc"),contains("crc"),contains("bc"),contains("cvc")  ) %>% 
+  filter(pref %in% prefonly) %>% 
+  filter(age %in% ageup20) %>% 
+  group_by(pref,sex) %>% 
+  summarise(totalpop_household_sum = sum(totalpop_household, na.rm = T),
+            numerator_gcgov = sum( gc.gov, na.rm = T),
+            numerator_lcgov = sum( lc.gov, na.rm = T),
+            numerator_crcgov = sum( crc.gov, na.rm = T),
+            numerator_bcgov = sum( bc.gov, na.rm = T),
+            numerator_cvcgov = sum( cvc.gov, na.rm = T),
+            numerator_gcwork = sum( gc.work, na.rm = T),
+            numerator_lcwork = sum( lc.work, na.rm = T),
+            numerator_crcwork = sum( crc.work, na.rm = T),
+            numerator_bcwork = sum( bc.work, na.rm = T),
+            numerator_cvcwork = sum( cvc.work, na.rm = T),
+            numerator_gcother = sum( gc.other, na.rm = T),
+            numerator_lcother = sum( lc.other, na.rm = T),
+            numerator_crcother = sum( crc.other, na.rm = T),
+            numerator_bcother = sum( bc.other, na.rm = T),
+            numerator_cvcother = sum( cvc.other, na.rm = T)) %>% 
+              mutate(cscr_govgc = numerator_gcgov/totalpop_household_sum,
+                     cscr_govlc = numerator_lcgov/totalpop_household_sum,
+                     cscr_govcrc = numerator_crcgov/totalpop_household_sum,
+                     cscr_govbc = numerator_bcgov/totalpop_household_sum,
+                     cscr_govcvc = numerator_cvcgov/totalpop_household_sum,
+                     cscr_workgc = numerator_gcwork/totalpop_household_sum,
+                     cscr_worklc = numerator_lcwork/totalpop_household_sum,
+                     cscr_workcrc = numerator_crcwork/totalpop_household_sum,
+                     cscr_workbc = numerator_bcwork/totalpop_household_sum,
+                     cscr_workcvc = numerator_cvcwork/totalpop_household_sum,
+                     cscr_othergc = numerator_gcother/totalpop_household_sum,
+                     cscr_otherlc = numerator_lcother/totalpop_household_sum,
+                     cscr_othercrc = numerator_crcother/totalpop_household_sum,
+                     cscr_otherbc = numerator_bcother/totalpop_household_sum,
+                     cscr_othercvc = numerator_cvcother/totalpop_household_sum,
+                     cscr_totalgc = cscr_govgc+cscr_workgc+cscr_othergc,
+                     cscr_totallc = cscr_govlc+cscr_worklc+cscr_otherlc,
+                    cscr_totalcrc = cscr_govcrc+cscr_workcrc+cscr_othercrc,
+                    cscr_totalbc = cscr_govbc+cscr_workbc+cscr_otherbc,
+                    cscr_totalcvc = cscr_govcvc+cscr_workcvc+cscr_othercvc) %>% 
+  select(pref,sex,totalpop_household_sum,
+         contains("cscr_total"),
+         contains("cscr_gov"),
+         contains("cscr_work"),
+         contains("cscr_other"), everything()) -> mergecscr_h28_up20
+```
+勤労者を見るときに年齢上限をどうするかという問題があるな。
+両方やってみるか。定年とされる年齢（６５）と、全部と。
+多いのは６０歳定年みたいだが、十数パーセントは６５歳定年があるらしいのでそっちも含めるつもりで。
+
+一応なんちゃら閣議決定では６９歳まででやるってことになったらしいがそれは国の方針ってだけだろ？何が正しいかとは関係ない。
+
+```{r}
+mergecscr.h28$pref %>% 
+  str_subset(pattern = "再掲", negate= T) %>% 
+  as.factor() %>% 
+  levels()  -> prefonly
+ 
+mergecscr.h28$age %>% 
+  str_subset(pattern = "再掲|total|7|8|69", negate= T) %>% 
+  as.factor() %>% 
+  levels()  -> ageup20to64
+
+mergecscr.h28$age %>% 
+  str_subset(pattern = "再掲|total|2|3|7|8|69", negate= T) %>% 
+  as.factor() %>% 
+  levels()  -> ageup40to64
+
+mergecscr.h28 %>% 
+  select(pref,age,sex,totalpop_household, contains("gc"),contains("lc"),contains("crc"),contains("bc"),contains("cvc")  ) %>% 
+  filter(pref %in% prefonly) %>% 
+  filter(age %in% ageup40to64) %>% 
+  group_by(pref,sex) %>% 
+  summarise(totalpop_household_sum = sum(totalpop_household, na.rm = T),
+            numerator_gcgov = sum( gc.gov, na.rm = T),
+            numerator_lcgov = sum( lc.gov, na.rm = T),
+            numerator_crcgov = sum( crc.gov, na.rm = T),
+            numerator_bcgov = sum( bc.gov, na.rm = T),
+            numerator_cvcgov = sum( cvc.gov, na.rm = T),
+            numerator_gcwork = sum( gc.work, na.rm = T),
+            numerator_lcwork = sum( lc.work, na.rm = T),
+            numerator_crcwork = sum( crc.work, na.rm = T),
+            numerator_bcwork = sum( bc.work, na.rm = T),
+            numerator_cvcwork = sum( cvc.work, na.rm = T),
+            numerator_gcother = sum( gc.other, na.rm = T),
+            numerator_lcother = sum( lc.other, na.rm = T),
+            numerator_crcother = sum( crc.other, na.rm = T),
+            numerator_bcother = sum( bc.other, na.rm = T),
+            numerator_cvcother = sum( cvc.other, na.rm = T)) %>% 
+              mutate(cscr_govgc = numerator_gcgov/totalpop_household_sum,
+                     cscr_govlc = numerator_lcgov/totalpop_household_sum,
+                     cscr_govcrc = numerator_crcgov/totalpop_household_sum,
+                     cscr_govbc = numerator_bcgov/totalpop_household_sum,
+                     cscr_govcvc = numerator_cvcgov/totalpop_household_sum,
+                     cscr_workgc = numerator_gcwork/totalpop_household_sum,
+                     cscr_worklc = numerator_lcwork/totalpop_household_sum,
+                     cscr_workcrc = numerator_crcwork/totalpop_household_sum,
+                     cscr_workbc = numerator_bcwork/totalpop_household_sum,
+                     cscr_workcvc = numerator_cvcwork/totalpop_household_sum,
+                     cscr_othergc = numerator_gcother/totalpop_household_sum,
+                     cscr_otherlc = numerator_lcother/totalpop_household_sum,
+                     cscr_othercrc = numerator_crcother/totalpop_household_sum,
+                     cscr_otherbc = numerator_bcother/totalpop_household_sum,
+                     cscr_othercvc = numerator_cvcother/totalpop_household_sum,
+                     cscr_totalgc = cscr_govgc+cscr_workgc+cscr_othergc,
+                     cscr_totallc = cscr_govlc+cscr_worklc+cscr_otherlc,
+                    cscr_totalcrc = cscr_govcrc+cscr_workcrc+cscr_othercrc,
+                    cscr_totalbc = cscr_govbc+cscr_workbc+cscr_otherbc,
+                    cscr_totalcvc = cscr_govcvc+cscr_workcvc+cscr_othercvc) %>% 
+  select(pref,sex,totalpop_household_sum, 
+         contains("cscr_total"),
+         contains("cscr_gov"),
+         contains("cscr_work"),
+         contains("cscr_other"), everything()) -> mergecscr_h28_up40to64
+
+mergecscr.h28 %>% 
+  select(pref,age,sex,totalpop_household, contains("gc"),contains("lc"),contains("crc"),contains("bc"),contains("cvc")  ) %>% 
+  filter(pref %in% prefonly) %>% 
+  filter(age %in% ageup20to64) %>% 
+  group_by(pref,sex) %>% 
+  summarise(totalpop_household_sum = sum(totalpop_household, na.rm = T),
+            numerator_gcgov = sum( gc.gov, na.rm = T),
+            numerator_lcgov = sum( lc.gov, na.rm = T),
+            numerator_crcgov = sum( crc.gov, na.rm = T),
+            numerator_bcgov = sum( bc.gov, na.rm = T),
+            numerator_cvcgov = sum( cvc.gov, na.rm = T),
+            numerator_gcwork = sum( gc.work, na.rm = T),
+            numerator_lcwork = sum( lc.work, na.rm = T),
+            numerator_crcwork = sum( crc.work, na.rm = T),
+            numerator_bcwork = sum( bc.work, na.rm = T),
+            numerator_cvcwork = sum( cvc.work, na.rm = T),
+            numerator_gcother = sum( gc.other, na.rm = T),
+            numerator_lcother = sum( lc.other, na.rm = T),
+            numerator_crcother = sum( crc.other, na.rm = T),
+            numerator_bcother = sum( bc.other, na.rm = T),
+            numerator_cvcother = sum( cvc.other, na.rm = T)) %>% 
+              mutate(cscr_govgc = numerator_gcgov/totalpop_household_sum,
+                     cscr_govlc = numerator_lcgov/totalpop_household_sum,
+                     cscr_govcrc = numerator_crcgov/totalpop_household_sum,
+                     cscr_govbc = numerator_bcgov/totalpop_household_sum,
+                     cscr_govcvc = numerator_cvcgov/totalpop_household_sum,
+                     cscr_workgc = numerator_gcwork/totalpop_household_sum,
+                     cscr_worklc = numerator_lcwork/totalpop_household_sum,
+                     cscr_workcrc = numerator_crcwork/totalpop_household_sum,
+                     cscr_workbc = numerator_bcwork/totalpop_household_sum,
+                     cscr_workcvc = numerator_cvcwork/totalpop_household_sum,
+                     cscr_othergc = numerator_gcother/totalpop_household_sum,
+                     cscr_otherlc = numerator_lcother/totalpop_household_sum,
+                     cscr_othercrc = numerator_crcother/totalpop_household_sum,
+                     cscr_otherbc = numerator_bcother/totalpop_household_sum,
+                     cscr_othercvc = numerator_cvcother/totalpop_household_sum,
+                     cscr_totalgc = cscr_govgc+cscr_workgc+cscr_othergc,
+                     cscr_totallc = cscr_govlc+cscr_worklc+cscr_otherlc,
+                    cscr_totalcrc = cscr_govcrc+cscr_workcrc+cscr_othercrc,
+                    cscr_totalbc = cscr_govbc+cscr_workbc+cscr_otherbc,
+                    cscr_totalcvc = cscr_govcvc+cscr_workcvc+cscr_othercvc) %>% 
+  select(pref,sex,totalpop_household_sum,
+         contains("cscr_total"),
+         contains("cscr_gov"),
+         contains("cscr_work"),
+         contains("cscr_other"), everything()) -> mergecscr_h28_up20to64
+```
+```{r}
+load("C:\\Users\\megme\\Dropbox\\厚労科研\\Koshi\\scrate and gender gap\\variables\\i_c_g_merge2016.RData")
+load("C:\\Users\\megme\\Dropbox\\厚労科研\\Koshi\\scrate and gender gap\\variables\\marital_tidy2.RData")
+load("C:\\Users\\megme\\Dropbox\\厚労科研\\Koshi\\scrate and gender gap\\variables\\education_2013and2016.RData")
+load("C:\\Users\\megme\\Dropbox\\厚労科研\\Koshi\\scrate and gender gap\\variables\\GDP_and_PD.RData")
+load("C:\\Users\\megme\\Dropbox\\厚労科研\\Koshi\\scrate and gender gap\\variables\\pop_selected.RData")
+load("C:/Users/megme/Dropbox/厚労科研/Koshi/scrate and gender gap/progress/economic_sc_merge2013up40.Rdata")
+load("C:/Users/megme/Dropbox/厚労科研/Koshi/scrate and gender gap/progress/economic_sc_merge2016up40.Rdata")
+
+
+GDP_and_PD_male <- GDP_and_PD
+GDP_and_PD_female <- GDP_and_PD
+GDP_and_PD_both <- GDP_and_PD
+
+GDP_and_PD_male$sex <- "男"
+GDP_and_PD_female$sex <- "女"
+GDP_and_PD <- bind_rows(GDP_and_PD_male, GDP_and_PD_female, GDP_and_PD_both)
+
+merge1 <- merge(i_c_g_merge, marital_tidy2, by = c("year", "pref", "sex"))
+merge2 <- merge(education_2013and2016, merge1, by = c("year", "pref", "sex"))
+
+merge3 <- merge(GDP_and_PD, merge2, by = c("year", "pref", "sex"))
+
+merged_variables <- merge(pop_selected, merge3, by = c("year", "pref", "sex"))
+merged_variables$sex %>%
+    str_replace_all(pattern = "男女計", replacement = "both") %>% 
+  str_replace_all(pattern = "男", replacement = "male") %>% 
+  str_replace_all(pattern = "女", replacement = "female")  -> merged_variables$sex
+
+merged_variables$pref <- factor(merged_variables$pref, levels = prefsort)
+
+merged_variables %>% 
+  group_by(year,sex) %>% 
+  summarise(sum(pop_totalage))
+```
+
+
+```{r}
+
+economic_bygov <- read.csv("C:\\Users\\megme\\Dropbox\\厚労科研\\Koshi\\scrate and gender gap\\variables\\economicdata_byprefandcity.csv",  header = T, stringsAsFactors = F)
+
+testname <- names(economic_bygov) %>% 
+  str_sub(start = 7, end = -1) %>% 
+  str_remove_all(pattern = "\\d|_")
+
+names(economic_bygov)[3:186]<- testname[3:186]
+
+economic_bycity <- economic_bygov %>% 
+  select(1,2, contains("衛生費"),  contains("保健所"),contains("市町村")) 
+
+test <- economic_bycity[3:84] %>% 
+  lapply(as.numeric) 
+test <- as.data.frame(test)
+
+economic <- cbind(economic_bycity[1:2], test)
+
+
+economic$pref <- economic$pref %>% 
+  str_remove_all(pattern = "府|県") %>% 
+  str_replace_all(pattern = "東京都", replace = "東京")
+
+prefsort <- c("北海道" , "青森" , "岩手" , "宮城" , "秋田" , "山形" , "福島" , "茨城" , "栃木" , "群馬" , "埼玉" , "千葉" , "東京" , "神奈川" , "新潟" , "富山" , "石川" , "福井" , "山梨" , "長野" , "岐阜" , "静岡" , "愛知" , "三重" , "滋賀" , "京都" , "大阪" , "兵庫" , "奈良" , "和歌山" , "鳥取" , "島根" , "岡山" , "広島" , "山口" , "徳島" , "香川" , "愛媛" , "高知" , "福岡" , "佐賀" , "長崎" , "熊本" , "大分" , "宮崎" , "鹿児島" , "沖縄" , "全国")
+economic$pref <- factor(economic$pref, levels = prefsort)
+
+test1 <- economic %>% 
+  filter(year %in% c("2013", "2016") )
+
+merged_variables2 <- merge(test1, merged_variables, by = c("year","pref"))
+
+merged_variables2 %>% mutate(ippannzaigennperpop = 一般財源.市町村財政..千円./pop_totalage,
+                                       jishuzaigennperpop = 自主財源額.市町村財政..千円./pop_totalage,
+                                       koufuzeiperpop = 地方交付税.市町村財政..千円./pop_totalage,
+                                       incomeperpop = 歳入決算総額.市町村財政..千円./pop_totalage,
+                                       expenceperpop = 歳出決算総額.市町村財政..千円./pop_totalage,
+                                       incomediffexpenceperpop = (歳入決算総額.市町村財政..千円. - 歳出決算総額.市町村財政..千円.)/pop_totalage,
+                                       minseihiperpop = 民生費.市町村財政..千円./pop_totalage,
+                                       socialwelfareperpop = 社会福祉費.市町村財政..千円./pop_totalage,
+                                       elderwelfareperpop = 老人福祉費.市町村財政..千円.,
+                                       childwelfareperpop = 児童福祉費.市町村財政..千円./pop_totalage,
+                                       safetynetperpop = 生活保護費.市町村財政..千円./pop_totalage,
+                                       minseihiratio = 民生費.市町村財政..千円./歳出決算総額.市町村財政..千円.,
+                                       minseihiperkoufuzei = 民生費.市町村財政..千円./地方交付税.市町村財政..千円.,
+                                       koufuzeiratio = 地方交付税.市町村財政..千円./歳入決算総額.市町村財政..千円.,
+                                       sttaxincomeperpop = 基準財政収入額.市町村財政..千円./pop_totalage,
+                                       needsperpop = 基準財政需要額.市町村財政..千円./pop_totalage,
+                                       fin_index = sttaxincomeperpop/needsperpop,
+                                       incomeperexpence = incomeperpop/expenceperpop,
+                                     hokeneiseihiperpop =  保健衛生費.市町村財政..千円./pop_totalage,
+                             hokenjohiperpop_city = 保健所費.市町村財政..千円./pop_totalage,
+                             publichealth_pref = 公衆衛生費.都道府県財政..千円./pop_totalage,
+                             hokenjohiperpop_pref = 保健所費.都道府県財政..千円./pop_totalage ) %>%  
+  mutate(incomeperpop_milyen = incomeperpop/1000000,
+         expenceperpop_milyen = expenceperpop/1000000,
+         incomediffexpenceperpop_milyen = incomediffexpenceperpop/1000000,
+         incomediffexpence = incomediffexpenceperpop*pop_totalage*1000,
+         koufuzeiperpop_milyen = koufuzeiperpop/1000000,
+         ippannzaigennperpop_milyen = ippannzaigennperpop/1000000,
+         safetynetperpop_milyen = safetynetperpop/1000000,
+         hokeneiseihiperpop_milyen = hokeneiseihiperpop/1000000,
+         hokenjohiperpop_city_milyen = hokenjohiperpop_city/1000000,
+         publichealth_pref_milyen = publichealth_pref/1000000,
+         hokenjohiperpop_pref_milyen = hokenjohiperpop_pref/1000000,
+         pref_eiseihi_milyen = publichealth_pref_milyen+ hokenjohiperpop_pref_milyen,
+         city_eiseihi_milyen = hokeneiseihiperpop_milyen+hokenjohiperpop_city_milyen,
+         GDP_milyen = GDP_100milyen/100, 
+         gdpperperson_milyen = gdpperperson*10,
+         annualincome_milyen = annualincome_1000yen/1000)  %>% 
+   select(year,pref,sex,
+          incomeperexpence,
+          incomediffexpenceperpop_milyen,
+          fin_index,
+          ippannzaigennperpop_milyen,koufuzeiperpop_milyen,
+          safetynetperpop_milyen,
+          pref_eiseihi_milyen,city_eiseihi_milyen,
+          popup40,popup65,pop_totalage,
+          GDP_milyen,gdpperperson_milyen,PD_1000perkm2,
+          elder_rate,
+          midrate,collegerate,
+          maritalrate,
+          totalassets_total,totalassets_pure,annualincome_milyen)   -> merged_variables2
+```
+mergecscr_h28_up40
+mergecscr_h28_up20
+mergecscr_h28_up40to64
+mergecscr_h28_up20to64
+の４種類のデータセットができた。これをvariablesとマージして、職域のやつがどうか、行政のがどうか、を見てみよう。
+variablesは年齢別のものはない。はず。
+
+年齢階級別の無業率とか、収入ないし資産額とかはありそうなんだけど。。
+
+```{r}
+mergecscr_h28_up40 %>% names()
+merged_variables2 %>%  names()
+
+names(mergecscr_h28_up40)[3:38] %>% 
+  paste0(., "_2016")  -> names(mergecscr_h28_up40)[3:38]
+
+mergecscr_h28_up20%>% names()
+names(mergecscr_h28_up20)[3:38] %>% 
+  paste0(., "_2016")  -> names(mergecscr_h28_up20)[3:38]
+```
+  
+
+
+```{r setting dataset}
+merge1 <- merge(mergecscr_h28_up40[1:23], merged_variables2, by = c("pref","sex")) %>% 
+  select(year,pref,sex, everything() )
+
+merge1 %>% names()
+
+merge1 %>% 
+  filter(year == "2016") -> gc2016_male 
+
+merge1 %>% 
+  filter(year == "2016") %>% 
+  filter(pref != "宮城") %>%
+    filter(pref != "福島") %>%  
+    filter(pref != "岩手") -> gc2016_male_prefmod
+
+```
+
+gc2016_male %>% 
+  filter(sex == "female") %>% 
+  filter(pref != "宮城") %>% 
+  filter(pref != "岩手") %>% 
+  filter(pref != "福島") %>% 
+ggplot(., aes(x = incomediffexpenceperpop_milyen, y = cscr_totalgc_2016, colour = annualincome_milyen)) +
+  geom_point()  + 
+  stat_smooth(method = "lm", se = FALSE, colour = "black", size = 1)+
+  geom_text(aes(label=pref))
+
+ 
+```{r lm cscrgc_total male}
+
+
+res_gc2016_male_total <- lm(data = gc2016_male, cscr_totalgc_2016 ~ 
+                      incomediffexpenceperpop_milyen + safetynetperpop_milyen + 
+    GDP_milyen + totalassets_pure + annualincome_milyen
+,subset =  sex == "male")
+summary(res_gc2016_male_total)
+vif(res_gc2016_male_total)
+step(res_gc2016_male_total)
+
+```
+
+
+
+
+```{r cscrgc_gov male}
+
+
+res_gc2016_male_gov <- lm(data = gc2016_male, cscr_govgc_2016 ~ 
+                     incomediffexpenceperpop_milyen + gdpperperson_milyen + 
+    midrate + maritalrate + totalassets_pure + annualincome_milyen
+
+, subset =  sex == "male")
+summary(res_gc2016_male_gov)
+vif(res_gc2016_male_gov)
+step(res_gc2016_male_gov)
+
+
+```
+
+
+```{r cscrgc_work male}
+
+
+res_gc2016_male_work <- lm(data = gc2016_male, cscr_workgc_2016 ~ 
+                    safetynetperpop_milyen + GDP_milyen
+
+, subset =  sex == "male")
+summary(res_gc2016_male_work)
+vif(res_gc2016_male_work)
+step(res_gc2016_male_work)
+
+```
+
+
+```{r cscrgc_other male}
+
+
+res_gc2016_male_other <- lm(data = gc2016_male, cscr_othergc_2016 ~ 
+                      fin_index
+, subset =  sex == "male")
+summary(res_gc2016_male_other)
+vif(res_gc2016_male_other)
+step(res_gc2016_male_other)
+
+# 全部無相関でstepしたら全部吹っ飛んだ。
+```
+現時点での結論は、
+gov,male,gcでは歳出-歳入が受診率に影響し、work,male,gcではstepすると吹っ飛んで消える。otherは無相関。
+ということで、市町村検診では財政状況が影響するらしいことの確認ができたのと、職域検診はその影響を受けないようだ、ということの示唆ができた。
+
+では、こないだ話したみたいに外れ値の東北３件を削るとどうなるのか？
+
+
+
+
+```{r}
+gc2016data2016_male <- tab_model(res_gc2016_male_total,res_gc2016_male_gov,res_gc2016_male_work,res_gc2016_male_other,
+                      dv.labels = c("total_male","gov_male", "work_male",  "other_male"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (GC, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\gc2016data2016_male.html" )
+gc2016data2016_male
+```
+
+
+
+```{r cscrgc_total prefmod male}
+
+res_gc2016_male_total_mod <- lm(data = gc2016_male_prefmod, cscr_totalgc_2016 ~ 
+                                fin_index + safetynetperpop_milyen + GDP_milyen + 
+    totalassets_pure
+,  subset =  sex == "male")
+summary(res_gc2016_male_total_mod)
+vif(res_gc2016_male_total_mod)
+step(res_gc2016_male_total_mod)
+
+
+```
+
+
+```{r cscrgc_gov prefmod male}
+
+
+res_gc2016_male_gov_mod <- lm(data = gc2016_male_prefmod, cscr_govgc_2016 ~ 
+                     incomediffexpenceperpop_milyen + midrate + 
+    maritalrate + totalassets_pure + annualincome_milyen
+, subset =  sex == "male")
+summary(res_gc2016_male_gov_mod)
+vif(res_gc2016_male_gov_mod)
+step(res_gc2016_male_gov_mod)
+
+# はずれを抜いてもgovはインカムが有意に働く。
+
+```
+
+
+```{r cscrgc_work prefmod male}
+
+res_gc2016_male_work_mod <- lm(data = gc2016_male_prefmod, cscr_workgc_2016 ~ 
+                      incomediffexpenceperpop_milyen + safetynetperpop_milyen + 
+    GDP_milyen + totalassets_pure
+          , subset =  sex == "male")
+summary(res_gc2016_male_work_mod)
+vif(res_gc2016_male_work_mod)
+step(res_gc2016_male_work_mod)
+
+# ぎりぎりだが、やっぱりworkはインカムデータは有意でなくなる。
+```
+
+```{r cscrgc_other prefmod male}
+
+res_gc2016_male_other_mod <- lm(data = gc2016_male_prefmod, cscr_othergc_2016 ~ 
+                   
+                                  incomediffexpenceperpop_milyen
+, subset =  sex == "male")
+summary(res_gc2016_male_other_mod)
+vif(res_gc2016_male_other_mod)
+step(res_gc2016_male_other_mod)
+
+# 今度は多少残ったが、perとdiff両方残って、どちらか消すと全部有意でなくなる。R^2も低い数値になる
+```
+```{r gc2016data2016_male_mod}
+gc2016data2016_male_mod <- tab_model(res_gc2016_male_total_mod,res_gc2016_male_gov_mod,res_gc2016_male_work_mod,res_gc2016_male_other_mod,
+                      
+                      dv.labels = c("total_male_mod","gov_male_mod", "work_male_mod",  "other_male_mod"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (GC, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\gc2016data2016_male_mod.html" )
+gc2016data2016_male_mod
+```
+
+          "incomediffexpenceperpop_milyen", "fin_index", "safetynetperpop_milyen", "pref_eiseihi_milyen", "city_eiseihi_milyen", "GDP_milyen", "gdpperperson_milyen", "PD_1000perkm2", "elder_rate", "midrate", "maritalrate", "totalassets_total", "totalassets_pure", "annualincome_milyen"
+
+
+
+```{r}
+panel.cor <- function(x, y, digits=2, prefix="", cex.cor) 
+{
+    usr <- par("usr"); on.exit(par(usr)) 
+    par(usr = c(0, 1, 0, 1)) 
+    r <- abs(cor(x, y)) 
+    txt <- format(c(r, 0.123456789), digits=digits)[1] 
+    txt <- paste(prefix, txt, sep="") 
+    if(missing(cex.cor)) cex <- 0.8/strwidth(txt) 
+ 
+    test <- cor.test(x,y) 
+    # borrowed from printCoefmat
+    Signif <- symnum(test$p.value, corr = FALSE, na = FALSE, 
+                  cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                  symbols = c("***", "**", "*", ".", " ")) 
+ 
+    text(0.5, 0.5, txt, cex = cex * r) 
+    text(.8, .8, Signif, cex=cex, col=2) 
+}
+
+```
+
+# gc female ----
+
+
+incomediffexpenceperpop_milyen + fin_index + safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen + GDP_milyen + gdpperperson_milyen + PD_1000perkm2 + elder_rate + midrate + maritalrate + totalassets_pure + annualincome_milyen
+
+```{r lm cscrgc_total female}
+merge1 %>% 
+  filter(year == "2016") -> gc2016_female 
+merge1 %>% 
+  filter(year == "2016") %>% 
+  filter(pref != "宮城") %>%
+    filter(pref != "福島") %>%  
+    filter(pref != "岩手") -> gc2016_female_prefmod
+
+
+
+res_gc2016_female_total <- lm(data = gc2016_female, cscr_totalgc_2016 ~ 
+                    incomediffexpenceperpop_milyen + safetynetperpop_milyen + 
+    PD_1000perkm2 + totalassets_pure + annualincome_milyen
+
+,subset =  sex == "female")
+summary(res_gc2016_female_total)
+vif(res_gc2016_female_total)
+step(res_gc2016_female_total)
+
+```
+
+
+
+
+```{r cscrgc_gov female}
+
+
+res_gc2016_female_gov <- lm(data = gc2016_female, cscr_govgc_2016 ~ 
+                   incomediffexpenceperpop_milyen + fin_index + 
+    safetynetperpop_milyen + gdpperperson_milyen + maritalrate + 
+    totalassets_pure + annualincome_milyen
+
+, subset =  sex == "female")
+summary(res_gc2016_female_gov)
+vif(res_gc2016_female_gov)
+step(res_gc2016_female_gov)
+
+
+```
+
+
+```{r cscrgc_work female}
+
+
+res_gc2016_female_work <- lm(data = gc2016_female, cscr_workgc_2016 ~ 
+                    fin_index + safetynetperpop_milyen + gdpperperson_milyen + 
+    elder_rate + annualincome_milyen
+, subset =  sex == "female")
+summary(res_gc2016_female_work)
+vif(res_gc2016_female_work)
+step(res_gc2016_female_work)
+
+```
+
+
+```{r cscrgc_other female}
+
+
+res_gc2016_female_other <- lm(data = gc2016_female, cscr_othergc_2016 ~ 
+                     fin_index + GDP_milyen
+, subset =  sex == "female")
+summary(res_gc2016_female_other)
+vif(res_gc2016_female_other)
+step(res_gc2016_female_other)
+
+# 全部無相関でstepしたら全部吹っ飛んだ。
+```
+外れ値３件を削る↓
+
+
+```{r}
+gc2016data2016_female <- tab_model(res_gc2016_female_total,res_gc2016_female_gov,res_gc2016_female_work,res_gc2016_female_other,
+                      dv.labels = c("total_female","gov_female", "work_female",  "other_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (GC, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\gc2016data2016_female.html" )
+gc2016data2016_female
+```
+
+
+
+```{r cscrgc_total prefmod female}
+
+
+res_gc2016_female_total_mod <- lm(data = gc2016_female_prefmod, cscr_totalgc_2016 ~ 
+                               incomediffexpenceperpop_milyen + safetynetperpop_milyen + 
+    PD_1000perkm2 + totalassets_pure + annualincome_milyen
+,  subset =  sex == "female")
+summary(res_gc2016_female_total_mod)
+vif(res_gc2016_female_total_mod)
+step(res_gc2016_female_total_mod)
+
+
+```
+
+
+```{r cscrgc_gov prefmod female}
+
+res_gc2016_female_gov_mod <- lm(data = gc2016_female_prefmod, cscr_govgc_2016 ~ 
+                     incomediffexpenceperpop_milyen + fin_index + 
+    safetynetperpop_milyen + gdpperperson_milyen + maritalrate + 
+    totalassets_pure + annualincome_milyen
+
+, subset =  sex == "female")
+summary(res_gc2016_female_gov_mod)
+vif(res_gc2016_female_gov_mod)
+step(res_gc2016_female_gov_mod)
+
+
+```
+incomeperexpence + incomediffexpenceperpop_milyen + fin_index + safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen + GDP_milyen + gdpperperson_milyen + PD_1000perkm2 + elder_rate + midrate + maritalrate + totalassets_total + totalassets_pure + annualincome_milyen
+
+
+```{r cscrgc_work prefmod female}
+
+res_gc2016_female_work_mod <- lm(data = gc2016_female_prefmod, cscr_workgc_2016 ~ 
+                     safetynetperpop_milyen + pref_eiseihi_milyen + 
+    elder_rate + maritalrate + totalassets_pure + annualincome_milyen
+          , subset =  sex == "female")
+summary(res_gc2016_female_work_mod)
+vif(res_gc2016_female_work_mod)
+step(res_gc2016_female_work_mod)
+
+```
+
+```{r cscrgc_other prefmod female}
+
+res_gc2016_female_other_mod <- lm(data = gc2016_female_prefmod, cscr_othergc_2016 ~ 
+                  incomediffexpenceperpop_milyen + PD_1000perkm2 + 
+    elder_rate + midrate + maritalrate + totalassets_pure
+, subset =  sex == "female")
+summary(res_gc2016_female_other_mod)
+vif(res_gc2016_female_other_mod)
+step(res_gc2016_female_other_mod)
+
+```
+
+```{r gc2016data2016_female_mod}
+gc2016data2016_female_mod <- tab_model(res_gc2016_female_total_mod,res_gc2016_female_gov_mod,res_gc2016_female_work_mod,res_gc2016_female_other_mod,
+                      
+                      dv.labels = c("total_female_mod","gov_female_mod", "work_female_mod",  "other_female_mod"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (GC, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\gc2016data2016_female_mod.html" )
+gc2016data2016_female_mod
+```
+
+
