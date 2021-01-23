@@ -18,7 +18,6 @@ mergecscr_h28 <- read.csv("C:\\Users\\megme\\Dropbox\\厚労科研\\Koshi\\scrat
 ```{r}
 mergecscr.h28 <- mergecscr_h28
 
-mergecscr.h28 %>% names()
 names(mergecscr.h28)[1] <-"sex"
 names(mergecscr.h28)[2] <-"age"
 names(mergecscr.h28)[3] <-"pref"
@@ -39,7 +38,6 @@ names(mergecscr.h28)[41] <-"cvc.gov"
 names(mergecscr.h28)[42] <-"cvc.work"
 names(mergecscr.h28)[43] <-"cvc.other"
 
-mergecscr.h28 %>% names()
 
 mergecscr.h28$sex %>% 
     str_replace_all(pattern = "男女計", replacement = "both") %>% 
@@ -58,8 +56,6 @@ mergecscr.h28$age %>%
   str_replace_all(pattern = "～", replacement = "_") %>% 
   str_replace_all(pattern = "総数", replacement = "total")-> mergecscr.h28$age 
 
-str(mergecscr.h28)
-names(mergecscr.h28)
 
 mergecscr.h28[4:53] %>% 
   lapply(., as.numeric) -> mergecscr.h28[4:53]
@@ -205,10 +201,10 @@ scr_ind_merge %>%
 
 ```{r}
 scr_ind_merge %>% 
-  select(pref,age,sex,totalpop_household, contains("gc"),contains("lc"),contains("crc"),contains("bc"),contains("cvc"),totalpop_ind,popofworker,primaryindustry,agri,fisherman  ) %>% 
+  select(year,pref,age,sex,totalpop_household, contains("gc"),contains("lc"),contains("crc"),contains("bc"),contains("cvc"),totalpop_ind,popofworker,primaryindustry,agri,fisherman  ) %>% 
   filter(pref %in% prefonly) %>% 
   filter(age %in% ageup20) %>% 
-  group_by(pref,sex) %>% 
+  group_by(year,pref,sex) %>% 
   summarise(totalpop_household_sum = sum(totalpop_household, na.rm = T),
             numerator_gcgov = sum( gc.gov, na.rm = T),
             numerator_lcgov = sum( lc.gov, na.rm = T),
@@ -275,9 +271,8 @@ scr_ind_merge %>%
          contains("cscr_gov"),
          contains("cscr_work"),
          contains("cscr_other"), pop_ratio,everything()) -> mergecscr_h28_up20
-
-names(mergecscr_h28_up20)[3:63] %>% 
-  paste0(., "_2016")  -> names(mergecscr_h28_up20)
+names(mergecscr_h28_up20)[3:64] %>% 
+  paste0(., "_2016")  -> names(mergecscr_h28_up20)[3:64]
 ```
 
 勤労者を見るときに年齢上限をどうするかという問題があるな。
@@ -446,9 +441,6 @@ scr_ind_merge %>%
          contains("cscr_gov"),
          contains("cscr_work"),
          contains("cscr_other"), pop_ratio,everything()) -> mergecscr_h28_up20to64
-
-names(mergecscr_h28_up20to64)[3:63] %>% 
-  paste0(., "_2016")  -> names(mergecscr_h28_up20to64)[3:63]
 
 
 ```
@@ -630,6 +622,8 @@ merged_variables2 <- merge(test1, merged_variables, by = c("year","pref"))
 merged_variables2 %>% mutate(ippannzaigennperpop = 一般財源.市町村財政..千円./pop_totalage,
                                        jishuzaigennperpop = 自主財源額.市町村財政..千円./pop_totalage,
                                        koufuzeiperpop = 地方交付税.市町村財政..千円./pop_totalage,
+                             kokkoperpop = 国庫支出金.市町村財政..千円./pop_totalage,
+                             kensishutuperpop = 県支出金.市町村財政..千円./pop_totalage,
                                        incomeperpop = 歳入決算総額.市町村財政..千円./pop_totalage,
                                        expenceperpop = 歳出決算総額.市町村財政..千円./pop_totalage,
                                        incomediffexpenceperpop = (歳入決算総額.市町村財政..千円. - 歳出決算総額.市町村財政..千円.)/pop_totalage,
@@ -654,6 +648,8 @@ merged_variables2 %>% mutate(ippannzaigennperpop = 一般財源.市町村財政.
          incomediffexpenceperpop_milyen = incomediffexpenceperpop/1000000,
          incomediffexpence = incomediffexpenceperpop*pop_totalage*1000,
          koufuzeiperpop_milyen = koufuzeiperpop/1000000,
+         kokkoperpop_milyen = kokkoperpop/1000000,
+                  kensishutuperpop_milyen = kensishutuperpop/1000000,
          ippannzaigennperpop_milyen = ippannzaigennperpop/1000000,
          safetynetperpop_milyen = safetynetperpop/1000000,
          hokeneiseihiperpop_milyen = hokeneiseihiperpop/1000000,
@@ -670,6 +666,7 @@ merged_variables2 %>% mutate(ippannzaigennperpop = 一般財源.市町村財政.
           incomediffexpenceperpop_milyen,
           fin_index,
           incomeperpop_milyen,expenceperpop_milyen,
+          kokkoperpop_milyen,kensishutuperpop_milyen,
           ippannzaigennperpop_milyen,koufuzeiperpop_milyen,
           safetynetperpop_milyen,
           pref_eiseihi_milyen,city_eiseihi_milyen,
@@ -679,6 +676,8 @@ merged_variables2 %>% mutate(ippannzaigennperpop = 一般財源.市町村財政.
           midrate,collegerate,
           maritalrate,
           totalassets_total,totalassets_pure,annualincome_milyen)   -> merged_variables2
+
+save(merged_variables2, file = "C:\\Users\\megme\\Dropbox\\厚労科研\\Koshi\\scrate and gender gap\\variables\\merged_variables2.RData")
 ```
 mergecscr_h28_up40
 mergecscr_h28_up20
@@ -688,5 +687,3 @@ mergecscr_h28_up20to64
 variablesは年齢別のものはない。はず。
 
 年齢階級別の無業率とか、収入ないし資産額とかはありそうなんだけど。。
-screening ratio作るところまでに限定して、それ以降を消した。
-あとで国庫支出金分とか震災関連分を引くので、インカムを入れなおした。
