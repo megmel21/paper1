@@ -1,0 +1,934 @@
+---
+title: "lm_scr_pref"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(DAAG)
+
+```
+
+
+#up40s----
+
+
+```{r setting dataset}
+merge1 <- merge(mergecscr_h28_up40, merged_variables3, by = c("pref","sex"), all = T) %>% 
+  select(year,pref,sex, everything() )
+
+merge1 %>% names()
+
+merge1 %>% 
+  select( -contains("_lc"), -contains("lc_"),
+          -contains("_crc"), -contains("crc_"),
+          -contains("_bc"), -contains("bc_"),
+          -contains("_cvc"), -contains("cvc_")) ->merge1_gc
+
+merge1 %>% 
+  select( -contains("_gc"), -contains("gc_"),
+          -contains("_crc"), -contains("crc_"),
+          -contains("_bc"), -contains("bc_"),
+          -contains("_cvc"), -contains("cvc_")) ->merge1_lc
+
+merge1 %>% 
+  select( -contains("_lc"), -contains("lc_"),
+          -contains("_gc"), -contains("gc_"),
+          -contains("_bc"), -contains("bc_"),
+          -contains("_cvc"), -contains("cvc_")) ->merge1_crc
+
+merge1 %>% 
+  select( -contains("_lc"), -contains("lc_"),
+          -contains("_crc"), -contains("crc_"),
+          -contains("_gc"), -contains("gc_"),
+          -contains("_cvc"), -contains("cvc_")) ->merge1_bc
+
+
+merge1_gc %>% 
+  filter(pref != "熊本") %>% 
+  filter(year == "2016") -> gc2016_male_prefmod 
+
+merge1_gc %>% 
+  filter(year == "2016") %>% 
+  filter(pref != "熊本") %>% 
+  filter(pref != "宮城") %>%
+    filter(pref != "福島") %>%  
+    filter(pref != "岩手") -> gc2016_male_prefmod_prefmod
+
+merge1_lc %>% 
+  filter(pref != "熊本") %>% 
+  filter(year == "2016") -> lc2016_male_prefmod 
+
+merge1_lc %>% 
+  filter(year == "2016") %>% 
+  filter(pref != "熊本") %>% 
+  filter(pref != "宮城") %>%
+    filter(pref != "福島") %>%  
+    filter(pref != "岩手") -> lc2016_male_prefmod_prefmod
+
+merge1_crc %>% 
+  filter(pref != "熊本") %>% 
+  filter(year == "2016") -> crc2016_male_prefmod 
+
+merge1_crc %>% 
+  filter(year == "2016") %>% 
+  filter(pref != "熊本") %>% 
+  filter(pref != "宮城") %>%
+    filter(pref != "福島") %>%  
+    filter(pref != "岩手") -> crc2016_male_prefmod_prefmod
+
+merge1_bc %>% 
+  filter(pref != "熊本") %>% 
+  filter(year == "2016") -> bc2016_male_prefmod 
+
+merge1_bc %>% 
+  filter(year == "2016") %>% 
+  filter(pref != "熊本") %>% 
+  filter(pref != "宮城") %>%
+    filter(pref != "福島") %>%  
+    filter(pref != "岩手") -> bc2016_male_prefmod_prefmod
+
+
+
+```
+
+# making dataset for female----
+
+```{r setting dataset for fefemale }
+
+merge1_gc %>% 
+  filter(pref != "熊本") %>% 
+  filter(year == "2016") -> gc2016_female_prefmod 
+
+merge1_gc %>% 
+  filter(year == "2016") %>% 
+  filter(pref != "熊本") %>% 
+  filter(pref != "宮城") %>%
+    filter(pref != "福島") %>%  
+    filter(pref != "岩手") -> gc2016_female_prefmod_prefmod
+
+merge1_lc %>% 
+  filter(pref != "熊本") %>% 
+  filter(year == "2016") -> lc2016_female_prefmod 
+
+merge1_lc %>% 
+  filter(year == "2016") %>% 
+  filter(pref != "熊本") %>% 
+  filter(pref != "宮城") %>%
+    filter(pref != "福島") %>%  
+    filter(pref != "岩手") -> lc2016_female_prefmod_prefmod
+
+merge1_crc %>% 
+  filter(pref != "熊本") %>% 
+  filter(year == "2016") -> crc2016_female_prefmod 
+
+merge1_crc %>% 
+  filter(year == "2016") %>% 
+  filter(pref != "熊本") %>% 
+  filter(pref != "宮城") %>%
+    filter(pref != "福島") %>%  
+    filter(pref != "岩手") -> crc2016_female_prefmod_prefmod
+
+merge1_bc %>% 
+  filter(pref != "熊本") %>% 
+  filter(year == "2016") -> bc2016_female_prefmod 
+
+merge1_bc %>% 
+  filter(year == "2016") %>% 
+  filter(pref != "熊本") %>% 
+  filter(pref != "宮城") %>%
+    filter(pref != "福島") %>%  
+    filter(pref != "岩手") -> bc2016_female_prefmod_prefmod
+
+
+
+```
+
+
+# こっから重回帰----
+# male ----
+cscr_totalgc_2016 + cscr_totalgc_mod_2016 + cscr_govgc_2016 + cscr_govgc_mod_2016 +
+cscr_workgc_2016 +    cscr_workgc_mod_2016 +cscr_othergc_2016 + cscr_othergc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen + incomediffexpenceperpop_milyen*haslimit_gc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc + asmrgc2018
+
+```{r lm cscrgc_total male}
+gc2016_male_prefmod %>% names()
+
+res_gc2016_male_prefmod_total <- lm(data = gc2016_male_prefmod, cscr_totalgc_2016 ~ 
+                             incomediffexpenceperpop_milyen + safetynetperpop_milyen + 
+    midrate + maritalrate + totalassets_pure + annualincome_milyen + 
+    othercity_gc + offhours_gc
+
+
+,subset =  sex == "male")
+summary(res_gc2016_male_prefmod_total)
+vif(res_gc2016_male_prefmod_total)
+step(res_gc2016_male_prefmod_total)
+
+```
+
+
+
+
+```{r cscrgc_gov male}
+
+
+res_gc2016_male_prefmod_gov <- lm(data = gc2016_male_prefmod, cscr_govgc_2016 ~ 
+                   incomediffexpenceperpop_milyen + safetynetperpop_milyen + 
+    gdpperperson_milyen + elder_rate + totalassets_pure + annualincome_milyen + 
+    forfree_gc + othercity_gc + offhours_gc + incomediffexpenceperpop_milyen:haslimit_gc
+
+, subset =  sex == "male")
+summary(res_gc2016_male_prefmod_gov)
+vif(res_gc2016_male_prefmod_gov)
+step(res_gc2016_male_prefmod_gov)
+
+
+```
+
+```{r cscrgc_work male}
+
+
+res_gc2016_male_prefmod_work <- lm(data = gc2016_male_prefmod, cscr_workgc_2016 ~ 
+                incomediffexpenceperpop_milyen + midrate + 
+    maritalrate + annualincome_milyen + forfree_gc + othercity_gc + 
+    offhours_gc
+, subset =  sex == "male")
+summary(res_gc2016_male_prefmod_work)
+vif(res_gc2016_male_prefmod_work)
+step(res_gc2016_male_prefmod_work)
+
+```
+
+
+```{r cscrgc_other male}
+
+
+res_gc2016_male_prefmod_other <- lm(data = gc2016_male_prefmod, cscr_othergc_2016 ~ 
+                     incomediffexpenceperpop_milyen + haslimit_gc + 
+    incomediffexpenceperpop_milyen:haslimit_gc
+
+, subset =  sex == "male")
+summary(res_gc2016_male_prefmod_other)
+vif(res_gc2016_male_prefmod_other)
+step(res_gc2016_male_prefmod_other)
+
+# 全部無相関でstepしたら全部吹っ飛んだ。
+```
+現時点での結論は、
+gov,male,gcでは歳出-歳入が受診率に影響し、work,male,gcではstepすると吹っ飛んで消える。otherは無相関。
+ということで、市町村検診では財政状況が影響するらしいことの確認ができたのと、職域検診はその影響を受けないようだ、ということの示唆ができた。
+
+では、こないだ話したみたいに外れ値の東北３件を削るとどうなるのか？
+
+
+
+
+```{r}
+gc2016data2016_male_prefmod <- tab_model(res_gc2016_male_prefmod_total,res_gc2016_male_prefmod_gov,res_gc2016_male_prefmod_work,res_gc2016_male_prefmod_other,
+                      dv.labels = c("total_male","gov_male", "work_male",  "other_male"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (GC, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\gc2016data2016_male_prefmod.html" )
+gc2016data2016_male_prefmod
+```
+
+incomediffexpenceperpop_milyen + incomediffexpenceperpop_milyen*haslimit_gc +
+safetynetperpop_milyen +pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc   + asmr2019
+
+    
+
+
+# gc female ----
+cscr_totalgc_2016 + cscr_totalgc_mod_2016 + cscr_govgc_2016 + cscr_govgc_mod_2016 +
+cscr_workgc_2016 +    cscr_workgc_mod_2016 +cscr_othergc_2016 + cscr_othergc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen + incomediffexpenceperpop_milyen*haslimit_gc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc + asmrgc2018
+
+```{r lm cscrgc_total female}
+
+res_gc2016_female_prefmod_total <- lm(data = gc2016_female_prefmod, cscr_totalgc_2016 ~ 
+                                safetynetperpop_milyen + pref_eiseihi_milyen + 
+    elder_rate + maritalrate + totalassets_pure + annualincome_milyen + 
+    othercity_gc
+,subset =  sex == "female")
+summary(res_gc2016_female_prefmod_total)
+vif(res_gc2016_female_prefmod_total)
+step(res_gc2016_female_prefmod_total)
+```
+
+
+
+
+```{r cscrgc_gov female}
+
+
+res_gc2016_female_prefmod_gov <- lm(data = gc2016_female_prefmod, cscr_govgc_2016 ~ 
+                             safetynetperpop_milyen + elder_rate + totalassets_pure + 
+    annualincome_milyen + forfree_gc + othercity_gc + offhours_gc
+, subset =  sex == "female")
+summary(res_gc2016_female_prefmod_gov)
+
+vif(res_gc2016_female_prefmod_gov)
+step(res_gc2016_female_prefmod_gov)
+
+
+```
+
+```{r cscrgc_work female}
+
+
+res_gc2016_female_prefmod_work <- lm(data = gc2016_female_prefmod, cscr_workgc_2016 ~ 
+                               safetynetperpop_milyen + pref_eiseihi_milyen + 
+    elder_rate + maritalrate + annualincome_milyen + forfree_gc
+
+, subset =  sex == "female")
+summary(res_gc2016_female_prefmod_work)
+vif(res_gc2016_female_prefmod_work)
+step(res_gc2016_female_prefmod_work)
+
+```
+
+
+```{r cscrgc_other female}
+
+
+res_gc2016_female_prefmod_other <- lm(data = gc2016_female_prefmod, cscr_othergc_2016 ~ 
+                              incomediffexpenceperpop_milyen + haslimit_gc + 
+    safetynetperpop_milyen + maritalrate
+
+, subset =  sex == "female")
+summary(res_gc2016_female_prefmod_other)
+vif(res_gc2016_female_prefmod_other)
+step(res_gc2016_female_prefmod_other)
+
+# 全部無相関でstepしたら全部吹っ飛んだ。
+```
+現時点での結論は、
+gov,female,gcでは歳出-歳入が受診率に影響し、work,female,gcではstepすると吹っ飛んで消える。otherは無相関。
+ということで、市町村検診では財政状況が影響するらしいことの確認ができたのと、職域検診はその影響を受けないようだ、ということの示唆ができた。
+
+では、こないだ話したみたいに外れ値の東北３件を削るとどうなるのか？
+
+
+
+
+```{r}
+gc2016data2016_female_prefmod <- tab_model(res_gc2016_female_prefmod_total,res_gc2016_female_prefmod_gov,res_gc2016_female_prefmod_work,res_gc2016_female_prefmod_other,
+                      dv.labels = c("total_female","gov_female", "work_female",  "other_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (GC, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\gc2016data2016_female_prefmod.html" )
+gc2016data2016_female_prefmod
+```
+
+
+incomediffexpenceperpop_milyen +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc +  
+asmr2019
+
+# lc male ----
+
+cscr_totallc_2016 + cscr_totallc_mod_2016 + cscr_govlc_2016 + cscr_govlc_mod_2016 +
+cscr_worklc_2016 +    cscr_worklc_mod_2016 +cscr_otherlc_2016 + cscr_otherlc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen + incomediffexpenceperpop_milyen*haslimit_lc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_lc +  forfree_lc +   
+othercity_lc +  offhours_lc +  
+asmrlc2018
+```{r lm cscrlc_total male}
+lc2016_male_prefmod %>% names()
+
+res_lc2016_male_prefmod_total <- lm(data = lc2016_male_prefmod, cscr_totallc_2016 ~ 
+                               incomediffexpenceperpop_milyen + safetynetperpop_milyen + 
+    GDP_milyen + totalassets_pure + forfree_lc + othercity_lc
+,subset =  sex == "male")
+summary(res_lc2016_male_prefmod_total)
+vif(res_lc2016_male_prefmod_total)
+step(res_lc2016_male_prefmod_total)
+
+```
+
+
+
+
+```{r cscrlc_gov male}
+
+
+res_lc2016_male_prefmod_gov <- lm(data = lc2016_male_prefmod, cscr_govlc_2016 ~ 
+                     incomediffexpenceperpop_milyen + safetynetperpop_milyen + 
+    PD_1000perkm2 + elder_rate + totalassets_pure + forfree_lc + 
+    othercity_lc + asmrlc2018
+, subset =  sex == "male")
+summary(res_lc2016_male_prefmod_gov)
+vif(res_lc2016_male_prefmod_gov)
+step(res_lc2016_male_prefmod_gov)
+
+
+```
+
+```{r cscrlc_work male}
+
+
+res_lc2016_male_prefmod_work <- lm(data = lc2016_male_prefmod, cscr_worklc_2016 ~ 
+                    incomediffexpenceperpop_milyen + safetynetperpop_milyen + 
+    pref_eiseihi_milyen + GDP_milyen + elder_rate + totalassets_pure + 
+    forfree_lc + othercity_lc + asmrlc2018
+
+, subset =  sex == "male")
+summary(res_lc2016_male_prefmod_work)
+vif(res_lc2016_male_prefmod_work)
+step(res_lc2016_male_prefmod_work)
+
+```
+
+
+```{r cscrlc_other male}
+
+
+res_lc2016_male_prefmod_other <- lm(data = lc2016_male_prefmod, cscr_otherlc_2016 ~ 
+                      incomediffexpenceperpop_milyen + city_eiseihi_milyen + 
+    othercity_lc + offhours_lc + incomediffexpenceperpop_milyen:haslimit_lc
+, subset =  sex == "male")
+summary(res_lc2016_male_prefmod_other)
+vif(res_lc2016_male_prefmod_other)
+step(res_lc2016_male_prefmod_other)
+
+# 全部無相関でstepしたら全部吹っ飛んだ。
+```
+現時点での結論は、
+gov,male,lcでは歳出-歳入が受診率に影響し、work,male,lcではstepすると吹っ飛んで消える。otherは無相関。
+ということで、市町村検診では財政状況が影響するらしいことの確認ができたのと、職域検診はその影響を受けないようだ、ということの示唆ができた。
+
+では、こないだ話したみたいに外れ値の東北３件を削るとどうなるのか？
+
+
+
+
+```{r}
+lc2016data2016_male_prefmod <- tab_model(res_lc2016_male_prefmod_total,res_lc2016_male_prefmod_gov,res_lc2016_male_prefmod_work,res_lc2016_male_prefmod_other,
+                      dv.labels = c("total_male","gov_male", "work_male",  "other_male"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (lc, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\lc2016data2016_male_prefmod.html" )
+lc2016data2016_male_prefmod
+```
+
+# lc female ----
+cscr_totallc_2016 + cscr_totallc_mod_2016 + cscr_govlc_2016 + cscr_govlc_mod_2016 +
+cscr_worklc_2016 +    cscr_worklc_mod_2016 +cscr_otherlc_2016 + cscr_otherlc_mod_2016 +
+
+
+ incomediffexpenceperpop_milyen + incomediffexpenceperpop_milyen*haslimit_lc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_lc +  forfree_lc +   
+othercity_lc +  offhours_lc +  
+asmrlc2018
+ 
+```{r lm cscrlc_total female}
+
+res_lc2016_female_prefmod_total <- lm(data = lc2016_female_prefmod, cscr_totallc_2016 ~ 
+                               haslimit_lc + safetynetperpop_milyen + PD_1000perkm2 + 
+    elder_rate + totalassets_pure + annualincome_milyen + forfree_lc + 
+    othercity_lc
+,subset =  sex == "female")
+summary(res_lc2016_female_prefmod_total)
+vif(res_lc2016_female_prefmod_total)
+step(res_lc2016_female_prefmod_total)
+```
+
+
+
+
+```{r cscrlc_gov female}
+
+
+res_lc2016_female_prefmod_gov <- lm(data = lc2016_female_prefmod, cscr_govlc_2016 ~ 
+                               safetynetperpop_milyen + PD_1000perkm2 + elder_rate + 
+    totalassets_pure + forfree_lc + othercity_lc
+
+, subset =  sex == "female")
+summary(res_lc2016_female_prefmod_gov)
+vif(res_lc2016_female_prefmod_gov)
+step(res_lc2016_female_prefmod_gov)
+
+
+```
+
+```{r cscrlc_work female}
+
+
+res_lc2016_female_prefmod_work <- lm(data = lc2016_female_prefmod, cscr_worklc_2016 ~ 
+                                haslimit_lc + PD_1000perkm2 + totalassets_pure + 
+    annualincome_milyen + othercity_lc + asmrlc2018
+
+, subset =  sex == "female")
+summary(res_lc2016_female_prefmod_work)
+vif(res_lc2016_female_prefmod_work)
+step(res_lc2016_female_prefmod_work)
+
+```
+
+
+```{r cscrlc_other female}
+
+
+res_lc2016_female_prefmod_other <- lm(data = lc2016_female_prefmod, cscr_otherlc_2016 ~ 
+                               incomediffexpenceperpop_milyen + haslimit_lc + 
+    elder_rate + offhours_lc + asmrlc2018 + incomediffexpenceperpop_milyen:haslimit_lc
+, subset =  sex == "female")
+summary(res_lc2016_female_prefmod_other)
+vif(res_lc2016_female_prefmod_other)
+step(res_lc2016_female_prefmod_other)
+
+# 全部無相関でstepしたら全部吹っ飛んだ。
+```
+現時点での結論は、
+gov,female,lcでは歳出-歳入が受診率に影響し、work,female,lcではstepすると吹っ飛んで消える。otherは無相関。
+ということで、市町村検診では財政状況が影響するらしいことの確認ができたのと、職域検診はその影響を受けないようだ、ということの示唆ができた。
+
+では、こないだ話したみたいに外れ値の東北３件を削るとどうなるのか？
+
+
+
+
+```{r}
+lc2016data2016_female_prefmod <- tab_model(res_lc2016_female_prefmod_total,res_lc2016_female_prefmod_gov,res_lc2016_female_prefmod_work,res_lc2016_female_prefmod_other,
+                      dv.labels = c("total_female","gov_female", "work_female",  "other_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (lc, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\lc2016data2016_female_prefmod.html" )
+lc2016data2016_female_prefmod
+```
+
+
+# crc male ----
+# male ----
+cscr_totalcrc_2016 + cscr_totalcrc_mod_2016 + cscr_govcrc_2016 + cscr_govcrc_mod_2016 +
+cscr_workcrc_2016 +    cscr_workcrc_mod_2016 +cscr_othercrc_2016 + cscr_othercrc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_crc +  forfree_crc +   
+othercity_crc +  offhours_crc +  
+asmrcrc2018
+```{r lm cscrcrc_total male}
+crc2016_male_prefmod %>% names()
+
+res_crc2016_male_prefmod_total <- lm(data = crc2016_male_prefmod, cscr_totalcrc_2016 ~ 
+                              safetynetperpop_milyen + GDP_milyen + gdpperperson_milyen + 
+    elder_rate + totalassets_pure + annualincome_milyen + othercity_crc + 
+    offhours_crc + asmrcrc2018
+
+,subset =  sex == "male")
+summary(res_crc2016_male_prefmod_total)
+vif(res_crc2016_male_prefmod_total)
+step(res_crc2016_male_prefmod_total)
+
+```
+
+
+
+
+```{r cscrcrc_gov male}
+
+
+res_crc2016_male_prefmod_gov <- lm(data = crc2016_male_prefmod, cscr_govcrc_2016 ~ 
+                    safetynetperpop_milyen + GDP_milyen + gdpperperson_milyen + 
+    totalassets_pure + annualincome_milyen + forfree_crc + othercity_crc + 
+    asmrcrc2018
+, subset =  sex == "male")
+summary(res_crc2016_male_prefmod_gov)
+vif(res_crc2016_male_prefmod_gov)
+step(res_crc2016_male_prefmod_gov)
+
+
+```
+
+```{r cscrcrc_work male}
+
+
+res_crc2016_male_prefmod_work <- lm(data = crc2016_male_prefmod, cscr_workcrc_2016 ~ 
+                  incomediffexpenceperpop_milyen + pref_eiseihi_milyen + 
+    totalassets_pure + annualincome_milyen + othercity_crc + 
+    offhours_crc
+, subset =  sex == "male")
+summary(res_crc2016_male_prefmod_work)
+vif(res_crc2016_male_prefmod_work)
+step(res_crc2016_male_prefmod_work)
+
+```
+
+
+```{r cscrcrc_other male}
+
+
+res_crc2016_male_prefmod_other <- lm(data = crc2016_male_prefmod, cscr_othercrc_2016 ~ 
+                    incomediffexpenceperpop_milyen + haslimit_crc + 
+    midrate + totalassets_pure + offhours_crc + asmrcrc2018 + 
+    incomediffexpenceperpop_milyen:haslimit_crc
+, subset =  sex == "male")
+summary(res_crc2016_male_prefmod_other)
+vif(res_crc2016_male_prefmod_other)
+step(res_crc2016_male_prefmod_other)
+
+# 全部無相関でstepしたら全部吹っ飛んだ。
+```
+現時点での結論は、
+gov,male,crcでは歳出-歳入が受診率に影響し、work,male,crcではstepすると吹っ飛んで消える。otherは無相関。
+ということで、市町村検診では財政状況が影響するらしいことの確認ができたのと、職域検診はその影響を受けないようだ、ということの示唆ができた。
+
+では、こないだ話したみたいに外れ値の東北３件を削るとどうなるのか？
+
+
+
+
+```{r}
+crc2016data2016_male_prefmod <- tab_model(res_crc2016_male_prefmod_total,res_crc2016_male_prefmod_gov,res_crc2016_male_prefmod_work,res_crc2016_male_prefmod_other,
+                      dv.labels = c("total_male","gov_male", "work_male",  "other_male"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (crc, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\crc2016data2016_male_prefmod.html" )
+crc2016data2016_male_prefmod
+```
+
+
+
+# crc female ----
+cscr_totalcrc_2016 + cscr_totalcrc_mod_2016 + cscr_govcrc_2016 + cscr_govcrc_mod_2016 +
+cscr_workcrc_2016 +    cscr_workcrc_mod_2016 +cscr_othercrc_2016 + cscr_othercrc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen + incomediffexpenceperpop_milyen*haslimit_crc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_crc +  forfree_crc +   
+othercity_crc +  offhours_crc +  
+asmrcrc2018
+ 
+```{r lm cscrcrc_total female}
+
+res_crc2016_female_prefmod_total <- lm(data = crc2016_female_prefmod, cscr_totalcrc_2016 ~ 
+                              safetynetperpop_milyen + PD_1000perkm2 + 
+    totalassets_pure + annualincome_milyen + othercity_crc + 
+    offhours_crc
+,subset =  sex == "female")
+summary(res_crc2016_female_prefmod_total)
+vif(res_crc2016_female_prefmod_total)
+step(res_crc2016_female_prefmod_total)
+```
+
+
+
+
+```{r cscrcrc_gov female}
+
+
+res_crc2016_female_prefmod_gov <- lm(data = crc2016_female_prefmod, cscr_govcrc_2016 ~ 
+                              safetynetperpop_milyen + GDP_milyen + gdpperperson_milyen + 
+    totalassets_pure + annualincome_milyen + forfree_crc + othercity_crc + 
+    asmrcrc2018
+, subset =  sex == "female")
+summary(res_crc2016_female_prefmod_gov)
+vif(res_crc2016_female_prefmod_gov)
+step(res_crc2016_female_prefmod_gov)
+
+
+```
+
+```{r cscrcrc_work female}
+
+
+res_crc2016_female_prefmod_work <- lm(data = crc2016_female_prefmod, cscr_workcrc_2016 ~ 
+                               maritalrate + annualincome_milyen + forfree_crc + 
+    othercity_crc + offhours_crc
+, subset =  sex == "female")
+summary(res_crc2016_female_prefmod_work)
+vif(res_crc2016_female_prefmod_work)
+step(res_crc2016_female_prefmod_work)
+
+```
+
+
+```{r cscrcrc_other female}
+
+
+res_crc2016_female_prefmod_other <- lm(data = crc2016_female_prefmod, cscr_othercrc_2016 ~ 
+                               PD_1000perkm2 + elder_rate + totalassets_pure + 
+    forfree_crc + offhours_crc
+, subset =  sex == "female")
+summary(res_crc2016_female_prefmod_other)
+vif(res_crc2016_female_prefmod_other)
+step(res_crc2016_female_prefmod_other)
+
+# 全部無相関でstepしたら全部吹っ飛んだ。
+```
+現時点での結論は、
+gov,female,crcでは歳出-歳入が受診率に影響し、work,female,crcではstepすると吹っ飛んで消える。otherは無相関。
+ということで、市町村検診では財政状況が影響するらしいことの確認ができたのと、職域検診はその影響を受けないようだ、ということの示唆ができた。
+
+では、こないだ話したみたいに外れ値の東北３件を削るとどうなるのか？
+
+
+
+
+```{r}
+crc2016data2016_female_prefmod <- tab_model(res_crc2016_female_prefmod_total,res_crc2016_female_prefmod_gov,res_crc2016_female_prefmod_work,res_crc2016_female_prefmod_other,
+                      dv.labels = c("total_female","gov_female", "work_female",  "other_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (crc, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\crc2016data2016_female_prefmod.html" )
+crc2016data2016_female_prefmod
+```
+
+
+# bc female----
+cscr_totalbc_2016 + cscr_totalbc_mod_2016 + cscr_govbc_2016 + cscr_govbc_mod_2016 +
+cscr_workbc_2016 +    cscr_workbc_mod_2016 +cscr_otherbc_2016 + cscr_otherbc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_bc +  forfree_bc +   
+othercity_bc +  offhours_bc +  
+asmrbc2018
+ 
+```{r lm cscrbc_total female}
+
+res_bc2016_female_prefmod_total <- lm(data = bc2016_female_prefmod, cscr_totalbc_2016 ~ 
+                               incomediffexpenceperpop_milyen + PD_1000perkm2 + 
+    elder_rate + totalassets_pure + annualincome_milyen + forfree_bc
+,subset =  sex == "female")
+summary(res_bc2016_female_prefmod_total)
+vif(res_bc2016_female_prefmod_total)
+step(res_bc2016_female_prefmod_total)
+```
+
+
+
+
+```{r cscrbc_gov female}
+
+
+res_bc2016_female_prefmod_gov <- lm(data = bc2016_female_prefmod, cscr_govbc_2016 ~ 
+                             incomediffexpenceperpop_milyen + haslimit_bc + 
+    safetynetperpop_milyen + PD_1000perkm2 + maritalrate + totalassets_pure + 
+    forfree_bc + offhours_bc + asmrbc2018
+
+, subset =  sex == "female")
+summary(res_bc2016_female_prefmod_gov)
+vif(res_bc2016_female_prefmod_gov)
+step(res_bc2016_female_prefmod_gov)
+
+
+```
+
+```{r cscrbc_work female}
+
+
+res_bc2016_female_prefmod_work <- lm(data = bc2016_female_prefmod, cscr_workbc_2016 ~ 
+                                incomediffexpenceperpop_milyen + PD_1000perkm2 + 
+    forfree_bc
+, subset =  sex == "female")
+summary(res_bc2016_female_prefmod_work)
+vif(res_bc2016_female_prefmod_work)
+step(res_bc2016_female_prefmod_work)
+
+```
+
+
+```{r cscrbc_other female}
+
+
+res_bc2016_female_prefmod_other <- lm(data = bc2016_female_prefmod, cscr_otherbc_2016 ~ 
+                               haslimit_bc + GDP_milyen + PD_1000perkm2 + 
+    elder_rate + midrate + annualincome_milyen + forfree_bc + 
+    othercity_bc
+, subset =  sex == "female")
+summary(res_bc2016_female_prefmod_other)
+vif(res_bc2016_female_prefmod_other)
+step(res_bc2016_female_prefmod_other)
+
+# 全部無相関でstepしたら全部吹っ飛んだ。
+```
+現時点での結論は、
+gov,female,bcでは歳出-歳入が受診率に影響し、work,female,bcではstepすると吹っ飛んで消える。otherは無相関。
+ということで、市町村検診では財政状況が影響するらしいことの確認ができたのと、職域検診はその影響を受けないようだ、ということの示唆ができた。
+
+では、こないだ話したみたいに外れ値の東北３件を削るとどうなるのか？
+
+
+
+
+```{r}
+bc2016data2016_female_prefmod <- tab_model(res_bc2016_female_prefmod_total,res_bc2016_female_prefmod_gov,res_bc2016_female_prefmod_work,res_bc2016_female_prefmod_other,
+                      dv.labels = c("total_female","gov_female", "work_female",  "other_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (bc, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\bc2016data2016_female_prefmod.html" )
+bc2016data2016_female_prefmod
+```
+
+# cvc female----
+cscr_totalcvc_2016 + cscr_totalcvc_mod_2016 + cscr_govcvc_2016 + cscr_govcvc_mod_2016 +
+cscr_workcvc_2016 +    cscr_workcvc_mod_2016 +cscr_othercvc_2016 + cscr_othercvc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen +incomediffexpenceperpop_milyen*haslimit_cvc+
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_cvc +  forfree_cvc +   
+othercity_cvc +  offhours_cvc +  
+asmrcvc2018
+ 
+```{r lm cscrcvc_total female}
+
+res_cvc2016_female_prefmod_total <- lm(data = cvc2016_female_prefmod, cscr_totalcvc_2016 ~ 
+                                incomediffexpenceperpop_milyen + haslimit_cvc + 
+    city_eiseihi_milyen + GDP_milyen + PD_1000perkm2 + annualincome_milyen + 
+    othercity_cvc + asmrcvc2018
+,subset =  sex == "female")
+summary(res_cvc2016_female_prefmod_total)
+vif(res_cvc2016_female_prefmod_total)
+step(res_cvc2016_female_prefmod_total)
+```
+
+
+
+
+```{r cscrcvc_gov female}
+
+
+res_cvc2016_female_prefmod_gov <- lm(data = cvc2016_female_prefmod, cscr_govcvc_2016 ~ 
+                            haslimit_cvc + city_eiseihi_milyen + midrate + 
+    annualincome_milyen + othercity_cvc + offhours_cvc + asmrcvc2018
+ 
+, subset =  sex == "female")
+summary(res_cvc2016_female_prefmod_gov)
+vif(res_cvc2016_female_prefmod_gov)
+step(res_cvc2016_female_prefmod_gov)
+
+
+```
+
+```{r cscrcvc_work female}
+
+
+res_cvc2016_female_prefmod_work <- lm(data = cvc2016_female_prefmod, cscr_workcvc_2016 ~ 
+                                       incomediffexpenceperpop_milyen + elder_rate + 
+    maritalrate + totalassets_pure + forfree_cvc + othercity_cvc
+, subset =  sex == "female")
+summary(res_cvc2016_female_prefmod_work)
+vif(res_cvc2016_female_prefmod_work)
+step(res_cvc2016_female_prefmod_work)
+
+```
+
+
+```{r cscrcvc_other female}
+
+
+res_cvc2016_female_prefmod_other <- lm(data = cvc2016_female_prefmod, cscr_othercvc_2016 ~ 
+                              incomediffexpenceperpop_milyen + safetynetperpop_milyen + 
+    gdpperperson_milyen + totalassets_pure + forfree_cvc + asmrcvc2018 + 
+    incomediffexpenceperpop_milyen:haslimit_cvc
+, subset =  sex == "female")
+summary(res_cvc2016_female_prefmod_other)
+vif(res_cvc2016_female_prefmod_other)
+step(res_cvc2016_female_prefmod_other)
+
+# 全部無相関でstepしたら全部吹っ飛んだ。
+```
+現時点での結論は、
+gov,female,cvcでは歳出-歳入が受診率に影響し、work,female,cvcではstepすると吹っ飛んで消える。otherは無相関。
+ということで、市町村検診では財政状況が影響するらしいことの確認ができたのと、職域検診はその影響を受けないようだ、ということの示唆ができた。
+
+では、こないだ話したみたいに外れ値の東北３件を削るとどうなるのか？
+
+
+
+
+```{r}
+cvc2016data2016_female_prefmod <- tab_model(res_cvc2016_female_prefmod_total,res_cvc2016_female_prefmod_gov,res_cvc2016_female_prefmod_work,res_cvc2016_female_prefmod_other,
+                      dv.labels = c("total_female","gov_female", "work_female",  "other_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (cvc, 2016), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\cvc2016data2016_female_prefmod.html" )
+cvc2016data2016_female_prefmod
+```

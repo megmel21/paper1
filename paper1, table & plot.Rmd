@@ -1,0 +1,365 @@
+---
+title: "paper1, table & plot"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(table1)
+library(DAAG)
+library(ggplot2)
+
+```
+
+```{r}
+load("C:\\Users\\megme\\Dropbox\\厚労科研\\Koshi\\scrate and gender gap\\variables\\sc_variables_merge2.RData")
+
+sc_variables_merge3 <- sc_variables_merge2
+
+
+sc_variables_merge3$sex <-
+  factor(sc_variables_merge3$sex,
+         levels = c("male", "female", "bothsex"),
+         labels = c("male", "female", "both"))
+```
+
+テーブルメイクのため、asscrをlongerdataにする。
+
+年齢別の受診率とかいれるにしても、元データに列を加えてから読み込んで、同じ要領でやればいい。
+
+```{r}
+sc_variables_merge3 %>%   
+  filter(year  == "2013") %>% 
+  select("sex", "pref", contains("asscrgc")) %>%
+  pivot_longer(., col = contains("asscrgc"), names_to = "year", values_to = "asscrgc") ->test_gc
+
+test_gc$year %>% 
+  str_remove_all(., pattern = "asscrgc")->test_gc$year 
+
+test_gc$cancertype <- "GC"
+
+names(test_gc)[4] <- "asscr"
+
+sc_variables_merge3 %>% 
+  filter(year  == "2013") %>% 
+  select("sex", "pref", contains("asscrlc")) %>%
+  pivot_longer(., col = contains("asscrlc"), names_to = "year", values_to = "asscrlc") ->test_lc
+
+test_lc$year %>% 
+  str_remove_all(., pattern = "asscrlc")->test_lc$year
+
+test_lc$cancertype <- "LC"
+
+names(test_lc)[4] <- "asscr"
+
+sc_variables_merge3 %>% 
+  filter(year  == "2013") %>% 
+  select("sex", "pref", contains("asscrcrc")) %>%
+  pivot_longer(., col = contains("asscrcrc"), names_to = "year", values_to = "asscrcrc") ->test_crc
+
+test_crc$year %>% 
+  str_remove_all(., pattern = "asscrcrc")->test_crc$year 
+
+test_crc$cancertype <- "CRC"
+
+names(test_crc)[4] <- "asscr"
+
+test_bind <- bind_rows(test_gc, test_lc, test_crc)
+```
+
+で、テーブルワンすればいいはずだ。
+
+gridcrc.40to65.mean <- grid.arrange(plotup65.mean.crc.asscr + theme(legend.position="none"), plotup65.mean.crc.cscr+ theme(legend.position="none"), legend2, plot40to65.mean.crc.asscr +  theme(legend.position="none"), plot40to65.mean.crc.cscr +  theme(legend.position="none"), ncol = 3, nrow = 2)
+
+plotbyfacetup65_gc_asscr <- ggplot(data = bindsexup65, mapping = aes(x = year, y = multigc/stpopup65, colour = factor(pref)))+
+stat_summary(fun = "identity", geom = "line")+
+  scale_x_continuous(breaks = c(2013, 2016, 2019), limits = c(2013, 2019))+
+facet_grid(. ~ sex)
+
+```{r}
+testtable1 <- table1(~ factor(year) +  factor(cancertype) | factor(sex), data=test_bind)
+
+test_bind2 <- test_bind
+test_bind2 %>% group_by("cancertype", "sex", "year") %>% 
+  summarise(mean(asscr))
+
+test_bind2 %>% 
+  group_by(year, sex, cancertype) %>% 
+  summarise(mean = mean(asscr), min = min(asscr), max = max(asscr))-> test
+
+test_bind2$cancertype <- factor(test_bind2$cancertype, levels = c("GC","LC","CRC"))
+
+test_bind2 %>% 
+  ggplot(., aes(x = factor(year), y = asscr, fill = sex) )+
+  geom_boxplot() +
+  scale_fill_brewer(palette="YlOrBr",direction=-1)+
+  facet_grid(. ~ cancertype) -> asscr_3cantype_plot 
+ggsave(file ="asscr_3cantype_plot.png", plot = asscr_3cantype_plot, height = 10, width = 15)
+  
+
+test_bind2 %>% 
+  filter(cancertype == "LC") %>% 
+  summary(.$asscr)
+```
+```{r}
+
+prefsort <- c("北海道" , "青森" , "岩手" , "宮城" , "秋田" , "山形" , "福島" , "茨城" , "栃木" , "群馬" , "埼玉" , "千葉" , "東京" , "神奈川" , "新潟" , "富山" , "石川" , "福井" , "山梨" , "長野" , "岐阜" , "静岡" , "愛知" , "三重" , "滋賀" , "京都" , "大阪" , "兵庫" , "奈良" , "和歌山" , "鳥取" , "島根" , "岡山" , "広島" , "山口" , "徳島" , "香川" , "愛媛" , "高知" , "福岡" , "佐賀" , "長崎" , "熊本" , "大分" , "宮崎" , "鹿児島" , "沖縄" , "全国")
+
+
+
+```
+
+```{r}
+sc_situation2 <- read_csv("C:/Users/megme/Documents/cleaning variables/sc_situation2.csv", locale = locale(encoding = "SHIFT-JIS"))
+
+names(sc_situation2) %>% 
+  str_remove_all(., pattern = "\\(|\\)|/|、|※|～") %>% 
+  str_replace_all(pattern = "%", replacement = "per")->names(sc_situation2)
+
+names(sc_situation2)[1]<-"year"
+names(sc_situation2)[3]<-"pref"
+names(sc_situation2)[7]<-"cancertype"
+
+sc_situation2$pref %>% 
+  str_remove_all(pattern = "県|府") %>% 
+  str_replace_all(pattern = "東京都" , replacement = "東京")->sc_situation2$pref 
+
+sc_situation2$pref <- factor(sc_situation2$pref, levels = prefsort)
+
+sc_situation2$pref %>% is.na() %>% sum()
+
+
+# [27] "定員.定員を設けている先着順あるいは抽選%" 
+# [30] "検診項目一部あるいは全員に実施した内容.回答あり.指針に基づく検診項目以外を実施した%"
+# [32] "費用の自己負担.対象者全員が自己負担なし%"        
+# [35] "受診会場.市内の会場のみで受診可能%"                                                   
+# [36] "受診会場.近隣市～県内の会場で受診可能%"             
+# [38] "休日早朝夜間の検診.実施した%"                                                     
+# [39] "休日早朝夜間の検診.実施していない%"      
+
+sc_situation2 %>% 
+  filter( 検診方式集団個別 == "集団") %>% 
+  select(year, pref,cancertype,27,30,32,36,38) %>% 
+  rename(haslimit = 定員.定員を設けている先着順あるいは抽選per,
+         originalmenu = 検診項目一部あるいは全員に実施した内容.回答あり.指針に基づく検診項目以外を実施したper, 
+         forfree = 費用の自己負担.対象者全員が自己負担なしper,
+         othercity = 受診会場.近隣市県内の会場で受診可能per,
+         offhours = 休日早朝夜間の検診.実施したper) -> sc_situation2_mod
+
+sc_situation2_mod[4:8] %>% 
+  lapply(., as.numeric) -> sc_situation2_mod[4:8]
+
+sc_situation2_mod$cancertype %>% as.factor() %>% levels()
+sc_situation2_mod$cancertype %>% 
+  str_replace_all(pattern = "胃がん", replacement = "GC") %>%
+  str_replace_all(pattern = "子宮頸がん", replacement = "CVC") %>% 
+  str_replace_all(pattern = "大腸がん", replacement = "CRC") %>% 
+  str_replace_all(pattern = "乳がん", replacement = "BC") %>% 
+  str_replace_all(pattern = "肺がん", replacement = "LC") -> sc_situation2_mod$cancertype
+  
+
+sc_situation2_mod$cancertype <- factor(sc_situation2_mod$cancertype, levels = c("GC","LC","CRC","BC","CVC"))
+
+sc_situation2_mod$haslimit %>% summary()
+sc_situation2_mod$originalmenu %>% summary()
+sc_situation2_mod$forfree %>% summary()
+sc_situation2_mod$othercity %>% summary()
+sc_situation2_mod$offhours %>% summary()
+
+haslimit <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(year), y = haslimit, fill = factor(year)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="haslimit.png", plot = haslimit, height = 10, width = 15)
+
+originalmenu <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(year), y = originalmenu, fill = factor(year)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="originalmenu.png", plot = originalmenu, height = 10, width = 15)
+
+forfree <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(year), y = forfree, fill = factor(year)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="forfree.png", plot = forfree, height = 10, width = 15)
+
+othercity <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(year), y = othercity, fill = factor(year)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="othercity.png", plot = othercity, height = 10, width = 15)
+
+offhours <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(year), y = offhours, fill = factor(year)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="offhours.png", plot = offhours, height = 10, width = 15)
+
+```
+
+```{r}
+sc_situation2_mod %>% 
+  mutate(cityornot = ifelse(pref %in% prefurban, "city","notcity")) -> sc_situation2_mod
+
+
+haslimit_city <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(cityornot), y = haslimit, fill = factor(cityornot)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="haslimit_city.png", plot = haslimit_city, height = 10, width = 15)
+
+# economic?
+
+originalmenu_city <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(cityornot), y = originalmenu, fill = factor(cityornot)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="originalmenu_city.png", plot = originalmenu_city, height = 10, width = 15)
+
+
+forfree_city <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(cityornot), y = forfree, fill = factor(cityornot)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="forfree_city.png", plot = forfree_city, height = 10, width = 15)
+
+othercity_city <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(cityornot), y = othercity, fill = factor(cityornot)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="othercity_city.png", plot = othercity_city, height = 10, width = 15)
+
+offhours_city <- sc_situation2_mod %>% 
+  ggplot(., mapping = aes(x = factor(cityornot), y = offhours, fill = factor(cityornot)))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="offhours_city.png", plot = offhours_city, height = 10, width = 15)
+
+```
+
+```{r}
+
+load("C:/Users/megme/Dropbox/厚労科研/Koshi/scrate and gender gap/progress/economic_sc_merge2016up40.Rdata")
+
+economic_sc_merge2016up40 %>% 
+  filter(sex == "男女計") ->test
+test$incomediffexpenceperpop %>% 
+summary()
+
+economic_sc_merge2016up40 %>% 
+  filter(sex == "男女計") %>% 
+  filter(incomediffexpenceperpop >= 25559) ->test1
+economic_sc_merge2016up40 %>%
+  filter(sex == "男女計") %>% 
+  filter(incomediffexpenceperpop < 25559) ->test2
+
+# # test1$pref %>% as.factor() %>% levels() -> prefhasmoney
+# test2$pref %>% as.factor() %>% levels() -> prefhasnomoney
+# factorになったとき、ソートでレベルを与えていた。prefにはレベルが残っていて、その一部を抜き出したとしてもレベルは消えないんだ。だから上の関数でレベルを見ると全部が出てくる。→characterにすれば解決するはず。
+test1$pref %>% as.character() ->prefhasmoney
+
+
+test$fin_index %>% 
+summary()
+
+economic_sc_merge2016up40 %>% 
+  filter(sex == "男女計") %>% 
+  filter(fin_index >= 0.6385) ->testf1
+economic_sc_merge2016up40 %>%
+  filter(sex == "男女計") %>% 
+  filter(fin_index < 0.6385) ->testf2
+
+testf1$pref %>% as.character() -> preff1
+
+test$基準財政収入額.市町村財政..千円. %>% 
+summary()
+
+economic_sc_merge2016up40 %>% 
+  filter(sex == "男女計") %>% 
+  filter(基準財政収入額.市町村財政..千円. >= 1.827e+08) ->testi1
+
+testi1$pref %>% as.character() -> prefi1
+
+
+
+sc_situation2_mod %>% 
+  mutate(hasmoneyornot = ifelse(pref %in% prefhasmoney, "rich","poor"), fin_indexhighorlow = ifelse(pref %in% preff1, "fin_index_high", "fin_index_low"))-> sc_situation2_mod
+# 
+# haslimit_money <- sc_situation2_mod %>% 
+#   # ggplot(., mapping = aes(x = factor(hasmoneyornot), y = haslimit, fill = factor(haslimit_money)))+
+#             geom_boxplot()+
+#   scale_fill_brewer(palette="PuBuGn")+
+#   facet_grid(. ~ cancertype)
+# ggsave(file ="haslimit_money.png", plot = haslimit_money, height = 10, width = 15)
+# order(y) でエラー:  型 'list'（'orderVector1' における）は未実装です のエラーをはいてダメだった。調べたら、as.factorを式の中でやるのがエラーのもとらしい。よくわからんが。下のように先にfactof化したら解決した。理由はわからない。
+
+sc_situation2_mod$hasmoneyornot <- as.factor(sc_situation2_mod$hasmoneyornot)
+sc_situation2_mod$fin_indexhighorlow <- as.factor(sc_situation2_mod$fin_indexhighorlow)
+
+ haslimit_money <- sc_situation2_mod %>%
+  ggplot(., mapping = aes(x = hasmoneyornot, y = haslimit, fill = hasmoneyornot))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="haslimit_money.png", plot = haslimit_money, height = 10, width = 15)
+
+ originalmenu_money <- sc_situation2_mod %>%
+  ggplot(., mapping = aes(x = hasmoneyornot, y = originalmenu, fill = hasmoneyornot))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="originalmenu_money.png", plot = originalmenu_money, height = 10, width = 15)
+
+ forfree_money <- sc_situation2_mod %>%
+  ggplot(., mapping = aes(x = hasmoneyornot, y = forfree, fill = hasmoneyornot))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="forfree_money.png", plot = forfree_money, height = 10, width = 15)
+
+ othercity_money <- sc_situation2_mod %>%
+  ggplot(., mapping = aes(x = hasmoneyornot, y = othercity, fill = hasmoneyornot))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="othercity_money.png", plot = othercity_money, height = 10, width = 15)
+
+ offhours_money <- sc_situation2_mod %>%
+  ggplot(., mapping = aes(x = hasmoneyornot, y = offhours, fill = hasmoneyornot))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="offhours_money.png", plot = offhours_money, height = 10, width = 15)
+
+
+
+# fin_index??
+
+
+
+ haslimit_finindex <- sc_situation2_mod %>%
+  ggplot(., mapping = aes(x = fin_indexhighorlow, y = haslimit, fill = fin_indexhighorlow))+
+            geom_boxplot()+
+  scale_fill_brewer(palette="PuBuGn")+
+  facet_grid(. ~ cancertype)
+ggsave(file ="haslimit_finindex.png", plot = haslimit_finindex, height = 10, width = 15)
+```
+
+受診率上限を有する割合とか、プレバランスをあらわす
+
+→経済的要因では、というクエスチョンを立てる
+
+→重回帰をする。という流れで
+
