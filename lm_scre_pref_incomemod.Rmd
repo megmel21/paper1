@@ -2432,3 +2432,736 @@ cvc2016data2016_female_incomemod3
 
 
 
+
+
+
+# mod4 ----
+
+# gc male ----
+cscr_totalgc_2016 + cscr_totalgc_mod_2016 + cscr_govgc_2016 + cscr_govgc_mod_2016 +
+cscr_workgc_2016 +    cscr_workgc_mod_2016 +cscr_othergc_2016 + cscr_othergc_mod_2016 +
+
+
+ incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_gc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc + asmrgc2018
+
+
+```{r lm cscrgc_total male}
+
+res_gc2016_male_total_incomemod4 <- lm(data = gc2016_incomemod, cscr_totalgc_2016 ~ 
+                              incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_gc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc + asmrgc2018
+,subset =  sex == "male")
+summary(res_gc2016_male_total_incomemod4)
+vif(res_gc2016_male_total_incomemod4)
+step(res_gc2016_male_total_incomemod4)
+
+```
+
+
+
+
+```{r cscrgc_gov male}
+
+
+res_gc2016_male_gov_incomemod4 <- lm(data = gc2016_incomemod, cscr_govgc_2016 ~  
+                              incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_gc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc + asmrgc2018
+, subset =  sex == "male")
+summary(res_gc2016_male_gov_incomemod4)
+vif(res_gc2016_male_gov_incomemod4)
+step(res_gc2016_male_gov_incomemod4)
+
+
+```
+
+```{r cscrgc_work male}
+
+
+res_gc2016_male_work_incomemod4 <- lm(data = gc2016_incomemod, cscr_workgc_2016 ~ 
+                                        incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_gc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc + asmrgc2018
+, subset =  sex == "male")
+summary(res_gc2016_male_work_incomemod4)
+vif(res_gc2016_male_work_incomemod4)
+step(res_gc2016_male_work_incomemod4)
+
+```
+
+
+
+```{r}
+gc2016data2016_male_incomemod4 <- tab_model(res_gc2016_male_total_incomemod4,res_gc2016_male_gov_incomemod4,res_gc2016_male_work_incomemod4,
+                                            dv.labels = c("total_male","gov_male", "work_male"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (GC, 2016, income-kokko_quake), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\gc2016data2016_male_incomemod4.html" )
+gc2016data2016_male_incomemod4
+```
+
+    
+
+
+# gc female ----
+cscr_totalgc_2016 + cscr_totalgc_mod_2016 + cscr_govgc_2016 + cscr_govgc_mod_2016 +
+cscr_workgc_2016 +    cscr_workgc_mod_2016 +cscr_othergc_2016 + cscr_othergc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_gc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc + asmrgc2018
+ 
+```{r lm cscrgc_total female}
+
+res_gc2016_female_total_incomemod4 <- lm(data = gc2016_incomemod, cscr_totalgc_2016 ~ 
+                                          incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_gc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc + asmrgc2018
+
+,subset =  sex == "female")
+summary(res_gc2016_female_total_incomemod4)
+vif(res_gc2016_female_total_incomemod4)
+step(res_gc2016_female_total_incomemod4)
+```
+
+
+
+
+```{r cscrgc_gov female}
+
+
+res_gc2016_female_gov_incomemod4 <- lm(data = gc2016_incomemod, cscr_govgc_2016 ~ 
+                                        incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_gc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc + asmrgc2018
+, subset =  sex == "female")
+summary(res_gc2016_female_gov_incomemod4)
+
+vif(res_gc2016_female_gov_incomemod4)
+step(res_gc2016_female_gov_incomemod4)
+
+
+```
+
+```{r cscrgc_work female}
+
+
+res_gc2016_female_work_incomemod4 <- lm(data = gc2016_incomemod, cscr_workgc_2016 ~  
+                                       incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_gc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_gc +  forfree_gc +   
+othercity_gc +  offhours_gc + asmrgc2018
+, subset =  sex == "female")
+summary(res_gc2016_female_work_incomemod4)
+vif(res_gc2016_female_work_incomemod4)
+step(res_gc2016_female_work_incomemod4)
+
+```
+
+
+
+```{r}
+gc2016data2016_female_incomemod4 <- tab_model(res_gc2016_female_total_incomemod4,res_gc2016_female_gov_incomemod4,res_gc2016_female_work_incomemod4,
+                                              dv.labels = c("total_female","gov_female", "work_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (GC, 2016, income-kokko_quake), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\gc2016data2016_female_incomemod4.html" )
+gc2016data2016_female_incomemod4
+```
+
+
+
+# lc male ----
+cscr_totallc_2016 + cscr_totallc_mod_2016 + cscr_govlc_2016 + cscr_govlc_mod_2016 +
+cscr_worklc_2016 +    cscr_worklc_mod_2016 +cscr_otherlc_2016 + cscr_otherlc_mod_2016 +
+
+
+ incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_lc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_lc +  forfree_lc +   
+othercity_lc +  offhours_lc + asmrlc2018
+
+
+```{r lm cscrlc_total male}
+
+res_lc2016_male_total_incomemod4 <- lm(data = lc2016_incomemod, cscr_totallc_2016 ~ 
+                              incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_lc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_lc +  forfree_lc +   
+othercity_lc +  offhours_lc + asmrlc2018
+,subset =  sex == "male")
+summary(res_lc2016_male_total_incomemod4)
+vif(res_lc2016_male_total_incomemod4)
+step(res_lc2016_male_total_incomemod4)
+
+```
+
+
+
+
+```{r cscrlc_gov male}
+
+
+res_lc2016_male_gov_incomemod4 <- lm(data = lc2016_incomemod, cscr_govlc_2016 ~  
+                              incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_lc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_lc +  forfree_lc +   
+othercity_lc +  offhours_lc + asmrlc2018
+, subset =  sex == "male")
+summary(res_lc2016_male_gov_incomemod4)
+vif(res_lc2016_male_gov_incomemod4)
+step(res_lc2016_male_gov_incomemod4)
+
+
+```
+
+```{r cscrlc_work male}
+
+
+res_lc2016_male_work_incomemod4 <- lm(data = lc2016_incomemod, cscr_worklc_2016 ~ 
+                                        incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_lc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_lc +  forfree_lc +   
+othercity_lc +  offhours_lc + asmrlc2018
+, subset =  sex == "male")
+summary(res_lc2016_male_work_incomemod4)
+vif(res_lc2016_male_work_incomemod4)
+step(res_lc2016_male_work_incomemod4)
+
+```
+
+
+
+```{r}
+lc2016data2016_male_incomemod4 <- tab_model(res_lc2016_male_total_incomemod4,res_lc2016_male_gov_incomemod4,res_lc2016_male_work_incomemod4,
+                                            dv.labels = c("total_male","gov_male", "work_male"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (lc, 2016, income-kokko_quake), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\lc2016data2016_male_incomemod4.html" )
+lc2016data2016_male_incomemod4
+```
+
+    
+
+
+# lc female ----
+cscr_totallc_2016 + cscr_totallc_mod_2016 + cscr_govlc_2016 + cscr_govlc_mod_2016 +
+cscr_worklc_2016 +    cscr_worklc_mod_2016 +cscr_otherlc_2016 + cscr_otherlc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_lc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_lc +  forfree_lc +   
+othercity_lc +  offhours_lc + asmrlc2018
+ 
+```{r lm cscrlc_total female}
+
+res_lc2016_female_total_incomemod4 <- lm(data = lc2016_incomemod, cscr_totallc_2016 ~ 
+                                          incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_lc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_lc +  forfree_lc +   
+othercity_lc +  offhours_lc + asmrlc2018
+
+,subset =  sex == "female")
+summary(res_lc2016_female_total_incomemod4)
+vif(res_lc2016_female_total_incomemod4)
+step(res_lc2016_female_total_incomemod4)
+```
+
+
+
+
+```{r cscrlc_gov female}
+
+
+res_lc2016_female_gov_incomemod4 <- lm(data = lc2016_incomemod, cscr_govlc_2016 ~ 
+                                        incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_lc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_lc +  forfree_lc +   
+othercity_lc +  offhours_lc + asmrlc2018
+, subset =  sex == "female")
+summary(res_lc2016_female_gov_incomemod4)
+
+vif(res_lc2016_female_gov_incomemod4)
+step(res_lc2016_female_gov_incomemod4)
+
+
+```
+
+```{r cscrlc_work female}
+
+
+res_lc2016_female_work_incomemod4 <- lm(data = lc2016_incomemod, cscr_worklc_2016 ~  
+                                       incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_lc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_lc +  forfree_lc +   
+othercity_lc +  offhours_lc + asmrlc2018
+, subset =  sex == "female")
+summary(res_lc2016_female_work_incomemod4)
+vif(res_lc2016_female_work_incomemod4)
+step(res_lc2016_female_work_incomemod4)
+
+```
+
+
+
+```{r}
+lc2016data2016_female_incomemod4 <- tab_model(res_lc2016_female_total_incomemod4,res_lc2016_female_gov_incomemod4,res_lc2016_female_work_incomemod4,
+                                              dv.labels = c("total_female","gov_female", "work_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (lc, 2016, income-kokko_quake), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\lc2016data2016_female_incomemod4.html" )
+lc2016data2016_female_incomemod4
+```
+# crc male ----
+cscr_totalcrc_2016 + cscr_totalcrc_mod_2016 + cscr_govcrc_2016 + cscr_govcrc_mod_2016 +
+cscr_workcrc_2016 +    cscr_workcrc_mod_2016 +cscr_othercrc_2016 + cscr_othercrc_mod_2016 +
+
+
+ incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_crc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_crc +  forfree_crc +   
+othercity_crc +  offhours_crc + asmrcrc2018
+
+
+```{r lm cscrcrc_total male}
+
+res_crc2016_male_total_incomemod4 <- lm(data = crc2016_incomemod, cscr_totalcrc_2016 ~ 
+                              incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_crc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_crc +  forfree_crc +   
+othercity_crc +  offhours_crc + asmrcrc2018
+,subset =  sex == "male")
+summary(res_crc2016_male_total_incomemod4)
+vif(res_crc2016_male_total_incomemod4)
+step(res_crc2016_male_total_incomemod4)
+
+```
+
+
+
+
+```{r cscrcrc_gov male}
+
+
+res_crc2016_male_gov_incomemod4 <- lm(data = crc2016_incomemod, cscr_govcrc_2016 ~  
+                              incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_crc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_crc +  forfree_crc +   
+othercity_crc +  offhours_crc + asmrcrc2018
+, subset =  sex == "male")
+summary(res_crc2016_male_gov_incomemod4)
+vif(res_crc2016_male_gov_incomemod4)
+step(res_crc2016_male_gov_incomemod4)
+
+
+```
+
+```{r cscrcrc_work male}
+
+
+res_crc2016_male_work_incomemod4 <- lm(data = crc2016_incomemod, cscr_workcrc_2016 ~ 
+                                        incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_crc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_crc +  forfree_crc +   
+othercity_crc +  offhours_crc + asmrcrc2018
+, subset =  sex == "male")
+summary(res_crc2016_male_work_incomemod4)
+vif(res_crc2016_male_work_incomemod4)
+step(res_crc2016_male_work_incomemod4)
+
+```
+
+
+
+```{r}
+crc2016data2016_male_incomemod4 <- tab_model(res_crc2016_male_total_incomemod4,res_crc2016_male_gov_incomemod4,res_crc2016_male_work_incomemod4,
+                                             dv.labels = c("total_male","gov_male", "work_male"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (crc, 2016, income-kokko_quake), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\crc2016data2016_male_incomemod4.html" )
+crc2016data2016_male_incomemod4
+```
+
+    
+
+
+# crc female ----
+cscr_totalcrc_2016 + cscr_totalcrc_mod_2016 + cscr_govcrc_2016 + cscr_govcrc_mod_2016 +
+cscr_workcrc_2016 +    cscr_workcrc_mod_2016 +cscr_othercrc_2016 + cscr_othercrc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_crc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_crc +  forfree_crc +   
+othercity_crc +  offhours_crc + asmrcrc2018
+ 
+```{r lm cscrcrc_total female}
+
+res_crc2016_female_total_incomemod4 <- lm(data = crc2016_incomemod, cscr_totalcrc_2016 ~ 
+                                          incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_crc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_crc +  forfree_crc +   
+othercity_crc +  offhours_crc + asmrcrc2018
+
+,subset =  sex == "female")
+summary(res_crc2016_female_total_incomemod4)
+vif(res_crc2016_female_total_incomemod4)
+step(res_crc2016_female_total_incomemod4)
+```
+
+
+
+
+```{r cscrcrc_gov female}
+
+
+res_crc2016_female_gov_incomemod4 <- lm(data = crc2016_incomemod, cscr_govcrc_2016 ~ 
+                                        incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_crc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_crc +  forfree_crc +   
+othercity_crc +  offhours_crc + asmrcrc2018
+, subset =  sex == "female")
+summary(res_crc2016_female_gov_incomemod4)
+
+vif(res_crc2016_female_gov_incomemod4)
+step(res_crc2016_female_gov_incomemod4)
+
+
+```
+
+```{r cscrcrc_work female}
+
+
+res_crc2016_female_work_incomemod4 <- lm(data = crc2016_incomemod, cscr_workcrc_2016 ~  
+                                       incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_crc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_crc +  forfree_crc +   
+othercity_crc +  offhours_crc + asmrcrc2018
+, subset =  sex == "female")
+summary(res_crc2016_female_work_incomemod4)
+vif(res_crc2016_female_work_incomemod4)
+step(res_crc2016_female_work_incomemod4)
+
+```
+
+
+
+```{r}
+crc2016data2016_female_incomemod4 <- tab_model(res_crc2016_female_total_incomemod4,res_crc2016_female_gov_incomemod4,res_crc2016_female_work_incomemod4,
+                                               dv.labels = c("total_female","gov_female", "work_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (crc, 2016, income-kokko_quake), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\crc2016data2016_female_incomemod4.html" )
+crc2016data2016_female_incomemod4
+```
+
+
+# bc female ----
+cscr_totalbc_2016 + cscr_totalbc_mod_2016 + cscr_govbc_2016 + cscr_govbc_mod_2016 +
+cscr_workbc_2016 +    cscr_workbc_mod_2016 +cscr_otherbc_2016 + cscr_otherbc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_bc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_bc +  forfree_bc +   
+othercity_bc +  offhours_bc + asmrbc2018
+ 
+```{r lm cscrbc_total female}
+
+res_bc2016_female_total_incomemod4 <- lm(data = bc2016_incomemod, cscr_totalbc_2016 ~ 
+                                          incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_bc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_bc +  forfree_bc +   
+othercity_bc +  offhours_bc + asmrbc2018
+
+,subset =  sex == "female")
+summary(res_bc2016_female_total_incomemod4)
+vif(res_bc2016_female_total_incomemod4)
+step(res_bc2016_female_total_incomemod4)
+```
+
+
+
+
+```{r cscrbc_gov female}
+
+
+res_bc2016_female_gov_incomemod4 <- lm(data = bc2016_incomemod, cscr_govbc_2016 ~ 
+                                        incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_bc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_bc +  forfree_bc +   
+othercity_bc +  offhours_bc + asmrbc2018
+, subset =  sex == "female")
+summary(res_bc2016_female_gov_incomemod4)
+
+vif(res_bc2016_female_gov_incomemod4)
+step(res_bc2016_female_gov_incomemod4)
+
+
+```
+
+```{r cscrbc_work female}
+
+
+res_bc2016_female_work_incomemod4 <- lm(data = bc2016_incomemod, cscr_workbc_2016 ~  
+                                       incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_bc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_bc +  forfree_bc +   
+othercity_bc +  offhours_bc + asmrbc2018
+, subset =  sex == "female")
+summary(res_bc2016_female_work_incomemod4)
+vif(res_bc2016_female_work_incomemod4)
+step(res_bc2016_female_work_incomemod4)
+
+```
+
+
+
+```{r}
+bc2016data2016_female_incomemod4 <- tab_model(res_bc2016_female_total_incomemod4,res_bc2016_female_gov_incomemod4,res_bc2016_female_work_incomemod4,
+                                              dv.labels = c("total_female","gov_female", "work_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (bc, 2016, income-kokko_quake), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\bc2016data2016_female_incomemod4.html" )
+bc2016data2016_female_incomemod4
+```
+
+
+
+
+
+
+#up20s----
+
+```{r setting dataset}
+merge1_incomemod <- merge(mergecscr_h28_up20, merged_variables4, by = c("pref","sex"), all = T) %>% 
+  select(year,pref,sex, everything() )
+names(merge1_incomemod)[5:44] %>% 
+  paste0(., "_2016") ->names(merge1_incomemod)[5:44]
+
+
+merge1_incomemod %>% 
+  select( -contains("_lc"), -contains("lc_"),
+          -contains("_crc"), -contains("crc_"),
+          -contains("_gc"), -contains("gc_"),
+          -contains("_bc"), -contains("bc_")) ->merge1_incomemod_cvc
+
+merge1_incomemod_cvc %>% 
+  filter(pref != "熊本") %>% 
+  filter(year == "2016") -> cvc2016_incomemod
+
+```
+
+# cvc female ----
+cscr_totalcvc_2016 + cscr_totalcvc_mod_2016 + cscr_govcvc_2016 + cscr_govcvc_mod_2016 +
+cscr_workcvc_2016 +    cscr_workcvc_mod_2016 +cscr_othercvc_2016 + cscr_othercvc_mod_2016 +
+
+
+incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_cvc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_cvc +  forfree_cvc +   
+othercity_cvc +  offhours_cvc + asmrcvc2018
+ 
+```{r lm cscrcvc_total female}
+
+res_cvc2016_female_total_incomemod4 <- lm(data = cvc2016_incomemod, cscr_totalcvc_2016 ~ 
+                                          incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_cvc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_cvc +  forfree_cvc +   
+othercity_cvc +  offhours_cvc + asmrcvc2018
+
+,subset =  sex == "female")
+summary(res_cvc2016_female_total_incomemod4)
+vif(res_cvc2016_female_total_incomemod4)
+step(res_cvc2016_female_total_incomemod4)
+```
+
+
+
+
+```{r cscrcvc_gov female}
+
+
+res_cvc2016_female_gov_incomemod4 <- lm(data = cvc2016_incomemod, cscr_govcvc_2016 ~ 
+                                        incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_cvc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_cvc +  forfree_cvc +   
+othercity_cvc +  offhours_cvc + asmrcvc2018
+, subset =  sex == "female")
+summary(res_cvc2016_female_gov_incomemod4)
+
+vif(res_cvc2016_female_gov_incomemod4)
+step(res_cvc2016_female_gov_incomemod4)
+
+
+```
+
+```{r cscrcvc_work female}
+
+
+res_cvc2016_female_work_incomemod4 <- lm(data = cvc2016_incomemod, cscr_workcvc_2016 ~  
+                                       incomediffexpenceperpop_milyen_mod4 + incomediffexpenceperpop_milyen_mod4*haslimit_cvc +
+safetynetperpop_milyen + pref_eiseihi_milyen + city_eiseihi_milyen +
+GDP_milyen + 
+gdpperperson_milyen + PD_1000perkm2 + elder_rate +midrate +
+maritalrate + totalassets_pure + 
+annualincome_milyen + haslimit_cvc +  forfree_cvc +   
+othercity_cvc +  offhours_cvc + asmrcvc2018
+, subset =  sex == "female")
+summary(res_cvc2016_female_work_incomemod4)
+vif(res_cvc2016_female_work_incomemod4)
+step(res_cvc2016_female_work_incomemod4)
+
+```
+
+
+
+```{r}
+cvc2016data2016_female_incomemod4 <- tab_model(res_cvc2016_female_total_incomemod4,res_cvc2016_female_gov_incomemod4,res_cvc2016_female_work_incomemod4,
+                                               dv.labels = c("total_female","gov_female", "work_female"),
+                      string.pred = "Coeffcient",
+                      string.ci = "Conf. Int (95%)",
+                      string.p = "P-Value", 
+                      linebreak = TRUE,
+                      digits = 3, digits.p = 2,
+                      title = "crude screening rate (cvc, 2016, income-kokko_quake), data = 2016",
+                      file = "C:\\Users\\megme\\Documents\\cleaning variables\\cvc2016data2016_female_incomemod4.html" )
+cvc2016data2016_female_incomemod4
+```
+
+
+
+
